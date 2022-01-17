@@ -5,25 +5,16 @@
 #include "UnityEngine/Transform.hpp"
 #include "UnityEngine/Vector3.hpp"
 #include "UnityEngine/Sprite.hpp"
-#include "UnityEngine/GameObject.hpp"
-#include "UnityEngine/MonoBehaviour.hpp"
-#include "UnityEngine/Texture2D.hpp"
-#include "UnityEngine/Canvas.hpp"
-#include "HMUI/ImageView.hpp"
-#include "TMPro/TextMeshProUGUI.hpp"
 #include "UnityEngine/Resources.hpp"
+#include "UnityEngine/Canvas.hpp"
 #include "UnityEngine/Material.hpp"
-#include "beatsaber-hook/shared/utils/il2cpp-functions.hpp"
-#include "GlobalNamespace/VRController.hpp"
+#include "UnityEngine/MonoBehaviour.hpp"
 #include "questui/shared/BeatSaberUI.hpp"
 #include "custom-types/shared/macros.hpp"
 #include "custom-types/shared/register.hpp"
 #include "SaberTailorConfig.hpp"
 #include "main.hpp"
-#include <iostream>  
-#include <typeinfo>
-#include "UnityEngine/Space.hpp"
-#include "UnityEngine/Camera.hpp"
+#include <iostream>
 
 DECLARE_CLASS_CODEGEN(ControllerSettingsHelper, AxisDisplay, UnityEngine::MonoBehaviour,
     DECLARE_INSTANCE_METHOD(void, Awake);

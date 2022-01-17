@@ -2,7 +2,6 @@
 
 #include "custom-types/shared/macros.hpp"
 #include "custom-types/shared/register.hpp"
-#include "questui/shared/CustomTypes/Components/Settings/SliderSetting.hpp"
 #include "UnityEngine/UI/Button.hpp"
 #include "questui/shared/BeatSaberUI.hpp"
 #include "UnityEngine/MonoBehaviour.hpp"

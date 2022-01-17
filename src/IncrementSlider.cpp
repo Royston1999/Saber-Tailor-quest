@@ -1,5 +1,5 @@
 #include "IncrementSlider.hpp"
-#include "questui/shared/CustomTypes/Components/ExternalComponents.hpp"
+#include "questui/shared/CustomTypes/Components/Settings/SliderSetting.hpp"
 #include "GlobalNamespace/FormattedFloatListSettingsValueController.hpp"
 #include "UnityEngine/RectTransform.hpp"
 #include "HMUI/TimeSlider.hpp"
@@ -7,9 +7,6 @@
 #include "UnityEngine/Resources.hpp"
 #include "GlobalNamespace/FormattedFloatListSettingsValueController.hpp"
 #include "Polyglot/LocalizedTextMeshProUGUI.hpp"
-#include "UnityEngine/TextAnchor.hpp"
-#include "questui/shared/CustomTypes/Components/Settings/IncrementSetting.hpp"
-#include "TMPro/FontStyles.hpp"
 
 DEFINE_TYPE(SaberTailor, IncrementSlider);
 
@@ -22,7 +19,6 @@ using namespace GlobalNamespace;
 
 QuestUI::SliderSetting* CreateSliderSetting(UnityEngine::Transform* parent, std::string_view name, float increment, float value, float minValue, float maxValue, std::function<void(float)> onValueChange)
     {
-
         auto gameObject = GameObject::New_ctor(il2cpp_utils::newcsstr("CUNT"));
         gameObject->AddComponent<LayoutElement*>();
         auto sliderSetting = gameObject->AddComponent<QuestUI::SliderSetting*>();
@@ -32,7 +28,7 @@ QuestUI::SliderSetting* CreateSliderSetting(UnityEngine::Transform* parent, std:
             auto parent1 = s->get_transform()->get_parent();
             if (!parent1) return false; 
             return to_utf8(csstrtostr(parent1->get_name())) == "SongStart";
-            });
+        });
 
         sliderSetting->slider = Object::Instantiate(timeSliderTemplate, gameObject->get_transform(), false);
         sliderSetting->Setup(minValue, maxValue, value, increment, 0.0f, onValueChange);
@@ -45,7 +41,7 @@ QuestUI::SliderSetting* CreateSliderSetting(UnityEngine::Transform* parent, std:
         rectTransform->set_anchorMax(Vector2(1, 1));
         rectTransform->set_sizeDelta(Vector2(54.0f, 0.0f));
         rectTransform->set_pivot(Vector2(1, 0.5f));
-        rectTransform->set_anchoredPosition(Vector2(0.75f, 0.0f));
+        rectTransform->set_anchoredPosition(Vector2(0.76f, 0.0f));
         rectTransform->set_localScale({1.0f, 1.0f, 0.0f});
 
         gameObject->GetComponent<RectTransform*>()->set_sizeDelta(Vector2(40, 8));
@@ -76,9 +72,9 @@ SaberTailor::IncrementSlider* SaberTailor::IncrementSlider::CreateIncrementSlide
     SaberTailor::IncrementSlider* incSlider = gameObject->AddComponent<SaberTailor::IncrementSlider*>();
 
     auto* layout = QuestUI::BeatSaberUI::CreateHorizontalLayoutGroup(gameObject->get_transform());
-    layout->set_spacing(-1.0f);
+    layout->set_spacing(-0.9f);
 
-    incSlider->leftButton = QuestUI::BeatSaberUI::CreateUIButton(layout->get_transform(), "", "DecButton", {0, 0}, {5.9f, 8.0f}, [incSlider, increment](){
+    incSlider->leftButton = QuestUI::BeatSaberUI::CreateUIButton(layout->get_transform(), "", "DecButton", {0, 0}, {6.0f, 8.0f}, [incSlider, increment](){
         float x = incSlider->sliderComponent->get_value() - increment;
         incSlider->sliderComponent->set_value(x);
         incSlider->sliderComponent->OnValueChange(incSlider->sliderComponent->get_value());

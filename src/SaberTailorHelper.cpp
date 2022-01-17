@@ -25,16 +25,16 @@ namespace IncrementHelper{
     }
 
     custom_types::Helpers::Coroutine forceUpdateSliderText(SaberTailor::IncrementSlider* slider, std::string text)
-{
-    co_yield reinterpret_cast<System::Collections::IEnumerator*>(UnityEngine::WaitForFixedUpdate::New_ctor());
-    co_yield nullptr;
-
-    while (to_utf8(csstrtostr(slider->sliderComponent->text->get_text())).compare(text)!=0){
-        slider->sliderComponent->text->set_text(il2cpp_utils::newcsstr(text));
+    {
+        co_yield reinterpret_cast<System::Collections::IEnumerator*>(UnityEngine::WaitForFixedUpdate::New_ctor());
         co_yield nullptr;
+
+        while (to_utf8(csstrtostr(slider->sliderComponent->text->get_text())).compare(text)!=0){
+            slider->sliderComponent->text->set_text(il2cpp_utils::newcsstr(text));
+            co_yield nullptr;
+        }
+        co_return;
     }
-    co_return;
-}
 }
 
 namespace PosRotHelper{

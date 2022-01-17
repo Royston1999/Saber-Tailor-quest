@@ -1,6 +1,5 @@
 #include "SaberTailorRightHand.hpp"
 #include "SettingsFlowCoordinator.hpp"
-#include "UnityEngine/RectOffset.hpp"
 #include "GlobalNamespace/SharedCoroutineStarter.hpp"
 #include "SaberTailorHelper.hpp"
 
@@ -13,7 +12,6 @@ SaberTailor::IncrementSlider* posZRight;
 SaberTailor::IncrementSlider* rotXRight;
 SaberTailor::IncrementSlider* rotYRight;
 SaberTailor::IncrementSlider* rotZRight;
-Array<TMPro::TextMeshProUGUI*>* incTextRight;
 
 void SaberTailor::Views::SaberTailorRightHand::DidActivate(
     bool firstActivation,
@@ -22,16 +20,17 @@ void SaberTailor::Views::SaberTailorRightHand::DidActivate(
 ) {
     using namespace GlobalNamespace;
     using namespace UnityEngine;
-    using namespace QuestUI::BeatSaberUI;
     using namespace UnityEngine::UI;
+    using namespace custom_types::Helpers;
+    using namespace IncrementHelper;
 
     if (firstActivation) {
         rightsabercontainer = QuestUI::BeatSaberUI::CreateVerticalLayoutGroup(get_transform());
         HorizontalLayoutGroup* somebuttons = QuestUI::BeatSaberUI::CreateHorizontalLayoutGroup(rightsabercontainer->get_transform());
-        CreateUIButton(somebuttons->get_transform(), "Mirror to Left", [](){
+        QuestUI::BeatSaberUI::CreateUIButton(somebuttons->get_transform(), "Mirror to Left", [](){
             TransferHelper::mirrorToLeft();
         });
-        CreateUIButton(somebuttons->get_transform(), "Export to Base Game", [](){
+        QuestUI::BeatSaberUI::CreateUIButton(somebuttons->get_transform(), "Export to Base Game", [](){
             TransferHelper::exportToBaseGame(1);
         });
         posXRight = SaberTailor::IncrementSlider::CreateIncrementSlider(rightsabercontainer->get_transform(), "Position X", 0.1f, SaberTailorMain::config.rightPosX, -10, 10, [](float value){
@@ -69,12 +68,12 @@ void SaberTailor::Views::SaberTailorRightHand::DidActivate(
             rotZRight->sliderComponent->slider->GetComponentInChildren<TMPro::TextMeshProUGUI*>()->set_text(il2cpp_utils::newcsstr(std::to_string(SaberTailorMain::config.rightRotZ) + " deg"));
         });
         HorizontalLayoutGroup* somemorebuttons = QuestUI::BeatSaberUI::CreateHorizontalLayoutGroup(rightsabercontainer->get_transform());
-        CreateUIButton(somemorebuttons->get_transform(), "Cancel", [](){
+        QuestUI::BeatSaberUI::CreateUIButton(somemorebuttons->get_transform(), "Cancel", [](){
             PosRotHelper::revertRightHand();
             QuestUI::ArrayUtil::First(UnityEngine::Resources::FindObjectsOfTypeAll<UnityEngine::UI::Button*>(), [] (UnityEngine::UI::Button* x) { return to_utf8(csstrtostr(x->get_name())) == "BackButton"; })->get_gameObject()->SetActive(true);
             SaberTailorMain::config.okButtonPressed = true;
         }); 
-        CreateUIButton(somemorebuttons->get_transform(), "Confirm", "PlayButton", [](){
+        QuestUI::BeatSaberUI::CreateUIButton(somemorebuttons->get_transform(), "Confirm", "PlayButton", [](){
             QuestUI::ArrayUtil::First(UnityEngine::Resources::FindObjectsOfTypeAll<UnityEngine::UI::Button*>(), [] (UnityEngine::UI::Button* x) { return to_utf8(csstrtostr(x->get_name())) == "BackButton"; })->get_gameObject()->SetActive(true);
             SaberTailorMain::config.okButtonPressed = true;
         });
@@ -87,12 +86,12 @@ void SaberTailor::Views::SaberTailorRightHand::DidActivate(
     rotYRight->sliderComponent->set_value(SaberTailorMain::config.rightRotY);
     rotZRight->sliderComponent->set_value(SaberTailorMain::config.rightRotZ);
 
-    GlobalNamespace::SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<custom_types::Helpers::enumeratorT*>(custom_types::Helpers::CoroutineHelper::New(IncrementHelper::forceUpdateSliderText(posXRight, IncrementHelper::Round(SaberTailorMain::config.rightPosX, 1) + " cm"))));
-    GlobalNamespace::SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<custom_types::Helpers::enumeratorT*>(custom_types::Helpers::CoroutineHelper::New(IncrementHelper::forceUpdateSliderText(posYRight, IncrementHelper::Round(SaberTailorMain::config.rightPosY, 1) + " cm"))));
-    GlobalNamespace::SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<custom_types::Helpers::enumeratorT*>(custom_types::Helpers::CoroutineHelper::New(IncrementHelper::forceUpdateSliderText(posZRight, IncrementHelper::Round(SaberTailorMain::config.rightPosZ, 1) + " cm"))));
-    GlobalNamespace::SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<custom_types::Helpers::enumeratorT*>(custom_types::Helpers::CoroutineHelper::New(IncrementHelper::forceUpdateSliderText(rotXRight, std::to_string(SaberTailorMain::config.rightRotX) + " deg"))));
-    GlobalNamespace::SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<custom_types::Helpers::enumeratorT*>(custom_types::Helpers::CoroutineHelper::New(IncrementHelper::forceUpdateSliderText(rotYRight, std::to_string(SaberTailorMain::config.rightRotY) + " deg"))));
-    GlobalNamespace::SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<custom_types::Helpers::enumeratorT*>(custom_types::Helpers::CoroutineHelper::New(IncrementHelper::forceUpdateSliderText(rotZRight, std::to_string(SaberTailorMain::config.rightRotZ) + " deg"))));
+    SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<enumeratorT*>(CoroutineHelper::New(forceUpdateSliderText(posXRight, IncrementHelper::Round(SaberTailorMain::config.rightPosX, 1) + " cm"))));
+    SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<enumeratorT*>(CoroutineHelper::New(forceUpdateSliderText(posYRight, IncrementHelper::Round(SaberTailorMain::config.rightPosY, 1) + " cm"))));
+    SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<enumeratorT*>(CoroutineHelper::New(forceUpdateSliderText(posZRight, IncrementHelper::Round(SaberTailorMain::config.rightPosZ, 1) + " cm"))));
+    SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<enumeratorT*>(CoroutineHelper::New(forceUpdateSliderText(rotXRight, std::to_string(SaberTailorMain::config.rightRotX) + " deg"))));
+    SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<enumeratorT*>(CoroutineHelper::New(forceUpdateSliderText(rotYRight, std::to_string(SaberTailorMain::config.rightRotY) + " deg"))));
+    SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<enumeratorT*>(CoroutineHelper::New(forceUpdateSliderText(rotZRight, std::to_string(SaberTailorMain::config.rightRotZ) + " deg"))));
 
     SaberTailorMain::config.currentPosXRight = SaberTailorMain::config.rightPosX;
     SaberTailorMain::config.currentPosYRight = SaberTailorMain::config.rightPosY;

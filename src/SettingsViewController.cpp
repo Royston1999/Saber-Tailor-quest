@@ -2,8 +2,6 @@
 #include "SettingsFlowCoordinator.hpp"
 #include "SaberTailorLeftHand.hpp"
 #include "SaberTailorRightHand.hpp"
-#include "GlobalNamespace/OVRPlugin.hpp"
-#include "GlobalNamespace/OVRPlugin_SystemHeadset.hpp"
 #include "HMUI/ViewController_AnimationDirection.hpp"
 #include "HMUI/ViewController_AnimationType.hpp"
 #include "questui/shared/BeatSaberUI.hpp"
