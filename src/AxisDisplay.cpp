@@ -33,6 +33,8 @@ namespace ControllerSettingsHelper{
             auto* arr = arrows[num][i] = GameObject::New_ctor(il2cpp_utils::newcsstr(arrowstring), Canvas::New_ctor()->GetType(), HMUI::ImageView::New_ctor()->GetType());
             auto* label = arrowTexts[num][i] = GameObject::New_ctor(il2cpp_utils::newcsstr(labelstring), Canvas::New_ctor()->GetType(), TMPro::TextMeshProUGUI::New_ctor()->GetType());
             auto* arrI = arr->GetComponentInChildren<HMUI::ImageView*>();
+            arr->GetComponentInChildren<Canvas*>()->set_sortingOrder(31);
+            label->GetComponentInChildren<Canvas*>()->set_sortingOrder(31);
             arrI->set_color(colour);
             arrI->set_sprite(Base64ToSprite(Sprites::arrow));
             arrI->set_material(ArrayUtil::First(Resources::FindObjectsOfTypeAll<Material*>(), [] (Material* x) { return to_utf8(csstrtostr(x->get_name())) == "UINoGlow"; }));
