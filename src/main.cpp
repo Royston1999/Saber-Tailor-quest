@@ -1,27 +1,11 @@
 #include "main.hpp"
 #include "SettingsFlowCoordinator.hpp"
-#include <iomanip>
-#include <sstream>
-#include "questui/shared/QuestUI.hpp"
-#include "questui/shared/BeatSaberUI.hpp"
 #include "beatsaber-hook/shared/utils/hooking.hpp"
-#include "GlobalNamespace/ResultsViewController.hpp"
 #include "AxisDisplay.hpp"
-#include "System/Math.hpp"
-#include "HMUI/ImageView.hpp"
-#include "GlobalNamespace/ScoreFormatter.hpp"
 #include "UnityEngine/GameObject.hpp"
-#include "UnityEngine/RectTransform.hpp"
-#include "UnityEngine/RectOffset.hpp"
 #include "UnityEngine/Resources.hpp"
-#include "UnityEngine/Material.hpp"
-#include "UnityEngine/TextAnchor.hpp"
-#include "UnityEngine/Transform.hpp"
-#include "TMPro/TextMeshProUGUI.hpp"
-#include "GlobalNamespace/LevelCompletionResults.hpp"
-#include "GlobalNamespace/SaberModelController.hpp"
-#include "GlobalNamespace/Saber.hpp"
 #include "GlobalNamespace/OculusVRHelper.hpp"
+#include "GlobalNamespace/VRController.hpp"
 #include "GlobalNamespace/MenuTransitionsHelper.hpp"
 #include "System/Action_1.hpp"
 #include "Zenject/DiContainer.hpp"
@@ -62,46 +46,55 @@ void SaberTailorMain::loadConfig() {
     ConfigHelper::LoadConfig(config, getConfig().config);
 }
 
-MAKE_HOOK_MATCH(ControllerTransform, &OculusVRHelper::AdjustControllerTransform, void, OculusVRHelper* self, XR::XRNode node, Transform* transform, Vector3 position, Vector3 rotation) {  
+MAKE_HOOK_MATCH(ControllerTransform, &OculusVRHelper::AdjustControllerTransform, void, OculusVRHelper* self, XR::XRNode node, Transform* transform, Vector3 position, Vector3 rotation) 
+{  
+    // right controller
     if (node == XR::XRNode::RightHand)
     {
-        if(SaberTailorMain::config.isEnabled){
+        if(SaberTailorMain::config.isEnabled) // overrides base game settings with the saber tailor config (right hand)
+        {
             position = Vector3((SaberTailorMain::config.rightPosX)/100, (SaberTailorMain::config.rightPosY)/100, (SaberTailorMain::config.rightPosZ)/100);
             rotation = Vector3((float)(SaberTailorMain::config.rightRotX), (float)(SaberTailorMain::config.rightRotY), (float)(SaberTailorMain::config.rightRotZ));
         }
-        if(SaberTailorMain::config.overrideSettingsMethod){
+        if(SaberTailorMain::config.overrideSettingsMethod) // overrides the order in which the settings are applied to the controller
+        {
             transform->Rotate(Vector3(0, 0, rotation.z));
 			transform->Translate(position);
 			transform->Rotate(Vector3(rotation.x, rotation.y, 0));
         }
-        else ControllerTransform(self, node, transform, position, rotation);
+        else ControllerTransform(self, node, transform, position, rotation); // runs the original method which applies the settings in normal order
     }
+    // left controller
     if (node == XR::XRNode::LeftHand)
     {
-        if (SaberTailorMain::config.isEnabled){
+        if (SaberTailorMain::config.isEnabled) // overrides base game settings with the saber tailor config (left hand)
+        {
             position = Vector3((SaberTailorMain::config.leftPosX)/100, (SaberTailorMain::config.leftPosY)/100, (SaberTailorMain::config.leftPosZ)/100);
             rotation = Vector3((float)(SaberTailorMain::config.leftRotX), (float)(SaberTailorMain::config.leftRotY), (float)(SaberTailorMain::config.leftRotZ));
         }
-        else if (SaberTailorMain::config.mirrorZRot){
-            rotation.z = -rotation.z;
-        }
-        if(SaberTailorMain::config.overrideSettingsMethod){
+        else if (SaberTailorMain::config.mirrorZRot) rotation.z = -rotation.z; // imagine the base game not having bugs
+
+        if(SaberTailorMain::config.overrideSettingsMethod) // overrides the order in which the settings are applied to the controller
+        {
             transform->Rotate(Vector3(0, 0, rotation.z));
 			transform->Translate(position);
 			transform->Rotate(Vector3(rotation.x, rotation.y, 0));
         }
-        else ControllerTransform(self, node, transform, position, rotation);
+        else ControllerTransform(self, node, transform, position, rotation); // runs the original method which applies the settings in normal order
     }
 }
 
 MAKE_HOOK_MATCH(MenuTransitionsHelper_RestartGame, &MenuTransitionsHelper::RestartGame, void, MenuTransitionsHelper* self, System::Action_1<Zenject::DiContainer*>* finishCallback)
 {
+    // stops soft restart from ruining my life
     Object::Destroy(SaberTailorMain::saberTailorMainSettingsPage);
     SaberTailorMain::saberTailorMainSettingsPage = nullptr;
     MenuTransitionsHelper_RestartGame(self, finishCallback);
 }
 
-MAKE_HOOK_MATCH(AxisOnStart, &MainMenuViewController::DidActivate, void, MainMenuViewController* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling) {
+MAKE_HOOK_MATCH(AxisOnStart, &MainMenuViewController::DidActivate, void, MainMenuViewController* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling)
+{
+    // enables axis arrows on start up or after soft restart if turned on in config
     AxisOnStart(self, firstActivation, addedToHierarchy, screenSystemEnabling);
     if (firstActivation && SaberTailorMain::config.spawnAxisDisplay){
         Array<VRController*>* controllers = (Resources::FindObjectsOfTypeAll<VRController*>());

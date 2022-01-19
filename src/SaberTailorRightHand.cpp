@@ -1,18 +1,17 @@
 #include "SaberTailorRightHand.hpp"
 #include "SettingsFlowCoordinator.hpp"
-#include "UnityEngine/RectOffset.hpp"
+#include "GlobalNamespace/SharedCoroutineStarter.hpp"
 #include "SaberTailorHelper.hpp"
 
 DEFINE_TYPE(SaberTailor::Views, SaberTailorRightHand);
 
 UnityEngine::UI::VerticalLayoutGroup* rightsabercontainer;
-QuestUI::IncrementSetting* posXRight;
-QuestUI::IncrementSetting* posYRight;
-QuestUI::IncrementSetting* posZRight;
-QuestUI::IncrementSetting* rotXRight;
-QuestUI::IncrementSetting* rotYRight;
-QuestUI::IncrementSetting* rotZRight;
-Array<TMPro::TextMeshProUGUI*>* incTextRight;
+SaberTailor::IncrementSlider* posXRight;
+SaberTailor::IncrementSlider* posYRight;
+SaberTailor::IncrementSlider* posZRight;
+SaberTailor::IncrementSlider* rotXRight;
+SaberTailor::IncrementSlider* rotYRight;
+SaberTailor::IncrementSlider* rotZRight;
 
 void SaberTailor::Views::SaberTailorRightHand::DidActivate(
     bool firstActivation,
@@ -21,77 +20,79 @@ void SaberTailor::Views::SaberTailorRightHand::DidActivate(
 ) {
     using namespace GlobalNamespace;
     using namespace UnityEngine;
-    using namespace QuestUI::BeatSaberUI;
     using namespace UnityEngine::UI;
+    using namespace custom_types::Helpers;
+    using namespace IncrementHelper;
 
     if (firstActivation) {
         rightsabercontainer = QuestUI::BeatSaberUI::CreateVerticalLayoutGroup(get_transform());
         HorizontalLayoutGroup* somebuttons = QuestUI::BeatSaberUI::CreateHorizontalLayoutGroup(rightsabercontainer->get_transform());
-        CreateUIButton(somebuttons->get_transform(), "Mirror to Left", [](){
+        QuestUI::BeatSaberUI::CreateUIButton(somebuttons->get_transform(), "Mirror to Left", [](){
             TransferHelper::mirrorToLeft();
         });
-        CreateUIButton(somebuttons->get_transform(), "Export to Base Game", [](){
+        QuestUI::BeatSaberUI::CreateUIButton(somebuttons->get_transform(), "Export to Base Game", [](){
             TransferHelper::exportToBaseGame(1);
         });
-        posXRight = CreateIncrementSetting(rightsabercontainer->get_transform(), "Position X", 1, 0.1f, SaberTailorMain::config.rightPosX, -10.0f, 10.0f, [](float value){
-            IncrementHelper::setIncrementText(posXRight, value);
-            float num = IncrementHelper::fixDumbNumberThing(value);
-            setFloat(getConfig().config, "rightPosX", num); getConfig().Write();
+        posXRight = SaberTailor::IncrementSlider::CreateIncrementSlider(rightsabercontainer->get_transform(), "Position X", 0.1f, SaberTailorMain::config.rightPosX, -10, 10, [](float value){
+            setFloat(getConfig().config, "rightPosX", value); getConfig().Write();
             ConfigHelper::LoadConfig(SaberTailorMain::config, getConfig().config);
+            posXRight->sliderComponent->slider->GetComponentInChildren<TMPro::TextMeshProUGUI*>()->set_text(il2cpp_utils::newcsstr(IncrementHelper::Round(SaberTailorMain::config.rightPosX, 1) + " cm"));
         });
-        posYRight = CreateIncrementSetting(rightsabercontainer->get_transform(), "Position Y", 1, 0.1f, SaberTailorMain::config.rightPosY, -10.0f, 10.0f, [](float value){
-            IncrementHelper::setIncrementText(posYRight, value);
-            float num = IncrementHelper::fixDumbNumberThing(value);
-            setFloat(getConfig().config, "rightPosY", num); getConfig().Write();
+        posYRight = SaberTailor::IncrementSlider::CreateIncrementSlider(rightsabercontainer->get_transform(), "Position Y", 0.1f, SaberTailorMain::config.rightPosY, -10, 10, [](float value){
+            setFloat(getConfig().config, "rightPosY", value); getConfig().Write();
             ConfigHelper::LoadConfig(SaberTailorMain::config, getConfig().config);
+            posYRight->sliderComponent->slider->GetComponentInChildren<TMPro::TextMeshProUGUI*>()->set_text(il2cpp_utils::newcsstr(IncrementHelper::Round(SaberTailorMain::config.rightPosY, 1) + " cm"));
         });
-        posZRight = CreateIncrementSetting(rightsabercontainer->get_transform(), "Position Z", 1, 0.1f, SaberTailorMain::config.rightPosZ, -10.0f, 10.0f, [](float value){
-            IncrementHelper::setIncrementText(posZRight, value);
-            float num = IncrementHelper::fixDumbNumberThing(value);
-            setFloat(getConfig().config, "rightPosZ", num); getConfig().Write();
+        posZRight = SaberTailor::IncrementSlider::CreateIncrementSlider(rightsabercontainer->get_transform(), "Position Z", 0.1f, SaberTailorMain::config.rightPosZ, -10, 10, [](float value){
+            setFloat(getConfig().config, "rightPosZ", value); getConfig().Write();
             ConfigHelper::LoadConfig(SaberTailorMain::config, getConfig().config);
+            posZRight->sliderComponent->slider->GetComponentInChildren<TMPro::TextMeshProUGUI*>()->set_text(il2cpp_utils::newcsstr(IncrementHelper::Round(SaberTailorMain::config.rightPosZ, 1) + " cm"));
         });
-        rotXRight = CreateIncrementSetting(rightsabercontainer->get_transform(), "Rotation X", 0, 1.0f, SaberTailorMain::config.rightRotX, -180.0f, 180.0f, [](float value){
-            IncrementHelper::setRotIncrementText(rotXRight, value);
-            setInt(getConfig().config, "rightRotX", value); getConfig().Write();
+        rotXRight = SaberTailor::IncrementSlider::CreateIncrementSlider(rightsabercontainer->get_transform(), "Rotation X", 1, SaberTailorMain::config.rightRotX, -180, 180, [](float value){
+            int x = std::round(value);
+            setInt(getConfig().config, "rightRotX", x); getConfig().Write();
             ConfigHelper::LoadConfig(SaberTailorMain::config, getConfig().config);
+            rotXRight->sliderComponent->slider->GetComponentInChildren<TMPro::TextMeshProUGUI*>()->set_text(il2cpp_utils::newcsstr(std::to_string(SaberTailorMain::config.rightRotX) + " deg"));
         });
-        rotYRight = CreateIncrementSetting(rightsabercontainer->get_transform(), "Rotation Y", 0, 1.0f, SaberTailorMain::config.rightRotY, -180.0f, 180.0f, [](float value){
-            IncrementHelper::setRotIncrementText(rotYRight, value);
-            setInt(getConfig().config, "rightRotY", value); getConfig().Write();
+        rotYRight = SaberTailor::IncrementSlider::CreateIncrementSlider(rightsabercontainer->get_transform(), "Rotation Y", 1, SaberTailorMain::config.rightRotY, -180, 180, [](float value){
+            int x = std::round(value);
+            setInt(getConfig().config, "rightRotY", x); getConfig().Write();
             ConfigHelper::LoadConfig(SaberTailorMain::config, getConfig().config);
+            rotYRight->sliderComponent->slider->GetComponentInChildren<TMPro::TextMeshProUGUI*>()->set_text(il2cpp_utils::newcsstr(std::to_string(SaberTailorMain::config.rightRotY) + " deg"));
         });
-        rotZRight = CreateIncrementSetting(rightsabercontainer->get_transform(), "Rotation Z", 0, 1.0f, SaberTailorMain::config.rightRotZ, -180.0f, 180.0f, [](float value){
-            IncrementHelper::setRotIncrementText(rotZRight, value);
-            setInt(getConfig().config, "rightRotZ", value); getConfig().Write();
+
+        rotZRight = SaberTailor::IncrementSlider::CreateIncrementSlider(rightsabercontainer->get_transform(), "Rotation Z", 1, SaberTailorMain::config.rightRotZ, -180, 180, [](float value){
+            int x = std::round(value);
+            setInt(getConfig().config, "rightRotZ", x); getConfig().Write();
             ConfigHelper::LoadConfig(SaberTailorMain::config, getConfig().config);
+            rotZRight->sliderComponent->slider->GetComponentInChildren<TMPro::TextMeshProUGUI*>()->set_text(il2cpp_utils::newcsstr(std::to_string(SaberTailorMain::config.rightRotZ) + " deg"));
         });
         HorizontalLayoutGroup* somemorebuttons = QuestUI::BeatSaberUI::CreateHorizontalLayoutGroup(rightsabercontainer->get_transform());
-        CreateUIButton(somemorebuttons->get_transform(), "Cancel", [](){
+        QuestUI::BeatSaberUI::CreateUIButton(somemorebuttons->get_transform(), "Cancel", [](){
             PosRotHelper::revertRightHand();
             QuestUI::ArrayUtil::First(UnityEngine::Resources::FindObjectsOfTypeAll<UnityEngine::UI::Button*>(), [] (UnityEngine::UI::Button* x) { return to_utf8(csstrtostr(x->get_name())) == "BackButton"; })->get_gameObject()->SetActive(true);
             SaberTailorMain::config.okButtonPressed = true;
         }); 
-        CreateUIButton(somemorebuttons->get_transform(), "Confirm", "PlayButton", [](){
+        QuestUI::BeatSaberUI::CreateUIButton(somemorebuttons->get_transform(), "Confirm", "PlayButton", [](){
             QuestUI::ArrayUtil::First(UnityEngine::Resources::FindObjectsOfTypeAll<UnityEngine::UI::Button*>(), [] (UnityEngine::UI::Button* x) { return to_utf8(csstrtostr(x->get_name())) == "BackButton"; })->get_gameObject()->SetActive(true);
             SaberTailorMain::config.okButtonPressed = true;
         });
     }
     QuestUI::ArrayUtil::First(UnityEngine::Resources::FindObjectsOfTypeAll<UnityEngine::UI::Button*>(), [] (UnityEngine::UI::Button* x) { return to_utf8(csstrtostr(x->get_name())) == "BackButton"; })->get_gameObject()->SetActive(false);
-    posXRight->CurrentValue = SaberTailorMain::config.rightPosX;
-    posYRight->CurrentValue = SaberTailorMain::config.rightPosY;
-    posZRight->CurrentValue = SaberTailorMain::config.rightPosZ;
-    rotXRight->CurrentValue = SaberTailorMain::config.rightRotX;
-    rotYRight->CurrentValue = SaberTailorMain::config.rightRotY;
-    rotZRight->CurrentValue = SaberTailorMain::config.rightRotZ;
+    posXRight->sliderComponent->set_value(SaberTailorMain::config.rightPosX);
+    posYRight->sliderComponent->set_value(SaberTailorMain::config.rightPosY);
+    posZRight->sliderComponent->set_value(SaberTailorMain::config.rightPosZ);
+    rotXRight->sliderComponent->set_value(SaberTailorMain::config.rightRotX);
+    rotYRight->sliderComponent->set_value(SaberTailorMain::config.rightRotY);
+    rotZRight->sliderComponent->set_value(SaberTailorMain::config.rightRotZ);
 
-    IncrementHelper::setIncrementText(posXRight, SaberTailorMain::config.rightPosX);
-    IncrementHelper::setIncrementText(posYRight, SaberTailorMain::config.rightPosY);
-    IncrementHelper::setIncrementText(posZRight, SaberTailorMain::config.rightPosZ);
-    IncrementHelper::setRotIncrementText(rotXRight, SaberTailorMain::config.rightRotX);
-    IncrementHelper::setRotIncrementText(rotYRight, SaberTailorMain::config.rightRotY);
-    IncrementHelper::setRotIncrementText(rotZRight, SaberTailorMain::config.rightRotZ);
-    
+    SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<enumeratorT*>(CoroutineHelper::New(forceUpdateSliderText(posXRight, IncrementHelper::Round(SaberTailorMain::config.rightPosX, 1) + " cm"))));
+    SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<enumeratorT*>(CoroutineHelper::New(forceUpdateSliderText(posYRight, IncrementHelper::Round(SaberTailorMain::config.rightPosY, 1) + " cm"))));
+    SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<enumeratorT*>(CoroutineHelper::New(forceUpdateSliderText(posZRight, IncrementHelper::Round(SaberTailorMain::config.rightPosZ, 1) + " cm"))));
+    SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<enumeratorT*>(CoroutineHelper::New(forceUpdateSliderText(rotXRight, std::to_string(SaberTailorMain::config.rightRotX) + " deg"))));
+    SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<enumeratorT*>(CoroutineHelper::New(forceUpdateSliderText(rotYRight, std::to_string(SaberTailorMain::config.rightRotY) + " deg"))));
+    SharedCoroutineStarter::get_instance()->StartCoroutine(reinterpret_cast<enumeratorT*>(CoroutineHelper::New(forceUpdateSliderText(rotZRight, std::to_string(SaberTailorMain::config.rightRotZ) + " deg"))));
+
     SaberTailorMain::config.currentPosXRight = SaberTailorMain::config.rightPosX;
     SaberTailorMain::config.currentPosYRight = SaberTailorMain::config.rightPosY;
     SaberTailorMain::config.currentPosZRight = SaberTailorMain::config.rightPosZ;
