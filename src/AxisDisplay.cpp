@@ -30,8 +30,12 @@ namespace ControllerSettingsHelper{
         for (int i = 0; i<3; i++){
             std::string arrowstring = axis[i] + " Arrow";
             std::string labelstring = axis[i] + " Label";
-            auto* arr = arrows[num][i] = GameObject::New_ctor(il2cpp_utils::newcsstr(arrowstring), Canvas::New_ctor()->GetType(), HMUI::ImageView::New_ctor()->GetType());
-            auto* label = arrowTexts[num][i] = GameObject::New_ctor(il2cpp_utils::newcsstr(labelstring), Canvas::New_ctor()->GetType(), TMPro::TextMeshProUGUI::New_ctor()->GetType());
+            auto* arr = arrows[num][i] = GameObject::New_ctor(il2cpp_utils::newcsstr(arrowstring));
+            auto* label = arrowTexts[num][i] = GameObject::New_ctor(il2cpp_utils::newcsstr(labelstring));
+            arr->AddComponent<Canvas*>();
+            arr->AddComponent<HMUI::ImageView*>();
+            label->AddComponent<Canvas*>();
+            label->AddComponent<TMPro::TextMeshProUGUI*>();
             auto* arrI = arr->GetComponentInChildren<HMUI::ImageView*>();
             arr->GetComponentInChildren<Canvas*>()->set_sortingOrder(31);
             label->GetComponentInChildren<Canvas*>()->set_sortingOrder(31);
@@ -65,16 +69,16 @@ namespace ControllerSettingsHelper{
     void AxisDisplay::Update(){
         if (SaberTailorMain::config.spawnAxisDisplay){
             for (int i = 0; i<3; i++){
-                auto* greyarrows = ((RectTransform*)arrows[1][i]->get_transform());
-                auto* greytext = ((RectTransform*)arrowTexts[1][i]->get_transform());
-                auto* redtext = ((RectTransform*)arrowTexts[0][i]->get_transform());
+                auto* greyarrows = arrows[1][i]->get_transform();
+                auto* greytext = arrowTexts[1][i]->get_transform();
+                auto* redtext = arrowTexts[0][i]->get_transform();
                 greyarrows->set_rotation(Quaternion::get_identity());
                 greyarrows->Rotate(therots[i]);
                 greytext->set_rotation(Quaternion::get_identity());
                 redtext->set_rotation(Quaternion::get_identity());
-                if (i == 0) greytext->set_position(get_transform()->get_position() + Vector3(0.3f * lefty, 0.0f, 0.0f)); 
-                if (i == 1) greytext->set_position(get_transform()->get_position() + Vector3(0.0f, 0.3f, 0.0f)); 
-                if (i == 2) greytext->set_position(get_transform()->get_position() + Vector3(0.0f, 0.0f, 0.3f)); 
+                if (i == 0) greytext->set_position(get_transform()->get_position() + Vector3(0.3f * lefty, 0.0f, 0.0f));
+                if (i == 1) greytext->set_position(get_transform()->get_position() + Vector3(0.0f, 0.3f, 0.0f));
+                if (i == 2) greytext->set_position(get_transform()->get_position() + Vector3(0.0f, 0.0f, 0.3f));
             }
         }
     }
@@ -88,6 +92,5 @@ namespace ControllerSettingsHelper{
             }
             GameObject::Destroy(GetComponent<AxisDisplay*>());
         }
-
     }
 }
