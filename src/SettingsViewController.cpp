@@ -87,7 +87,7 @@ UnityEngine::UI::Button* SaberTailor::Views::SettingsViewController::CreateUIVie
     using namespace UnityEngine;
     return QuestUI::BeatSaberUI::CreateUIButton(parent, title, Vector2(), Vector2(30, 5),
         [this, title, viewController]() {
-            flowCoordinator->SetTitle(il2cpp_utils::newcsstr(title), ViewController::AnimationType::In);
+            flowCoordinator->SetTitle(title, ViewController::AnimationType::In);
             flowCoordinator->ReplaceTopViewController(viewController, flowCoordinator, flowCoordinator, nullptr, ViewController::AnimationType::In, ViewController::AnimationDirection::Horizontal);
 
             reinterpret_cast<SaberTailor::SettingsFlowCoordinator*>(flowCoordinator)->currentViewController = viewController;

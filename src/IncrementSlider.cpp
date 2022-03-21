@@ -90,7 +90,7 @@ SaberTailor::IncrementSlider* SaberTailor::IncrementSlider::CreateIncrementSlide
     localizedText->set_Key(System::String::_get_Empty());
 
     auto text1 = nameText->GetComponent<TextMeshProUGUI*>();
-    text1->set_text(il2cpp_utils::newcsstr(text));
+    text1->set_text(text);
     gameObject->get_transform()->SetParent(mainCanvas->get_transform(), false);
     gameObject->GetComponent<LayoutElement*>()->set_preferredWidth(40);
     gameObject->GetComponent<RectTransform*>()->set_sizeDelta({40, 10});

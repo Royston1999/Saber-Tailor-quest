@@ -12,7 +12,7 @@ void SaberTailor::SettingsFlowCoordinator::DidActivate(bool firstActivation, boo
     using namespace HMUI;
     
     if (firstActivation) {
-        SetTitle(il2cpp_utils::newcsstr(ID), ViewController::AnimationType::Out);
+        SetTitle(ID, ViewController::AnimationType::Out);
     }
     if (SaberTailorMain::saberTailorMainSettingsPage == nullptr) SaberTailorMain::saberTailorMainSettingsPage = QuestUI::BeatSaberUI::CreateViewController<SaberTailor::Views::SettingsViewController*>();
     settingsViewController = SaberTailorMain::saberTailorMainSettingsPage;
@@ -35,7 +35,7 @@ void SaberTailor::SettingsFlowCoordinator::Update(){
         using namespace HMUI;
 
         if (currentViewController){
-            SetTitle(il2cpp_utils::newcsstr(ID), ViewController::AnimationType::In);
+            SetTitle(ID, ViewController::AnimationType::In);
             ReplaceTopViewController(settingsViewController, this, this, nullptr, ViewController::AnimationType::Out, ViewController::AnimationDirection::Horizontal);
             currentViewController = nullptr;
         } 

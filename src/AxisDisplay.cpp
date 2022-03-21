@@ -30,8 +30,8 @@ namespace ControllerSettingsHelper{
         for (int i = 0; i<3; i++){
             std::string arrowstring = axis[i] + " Arrow";
             std::string labelstring = axis[i] + " Label";
-            auto* arr = arrows[num][i] = GameObject::New_ctor(il2cpp_utils::newcsstr(arrowstring));
-            auto* label = arrowTexts[num][i] = GameObject::New_ctor(il2cpp_utils::newcsstr(labelstring));
+            auto* arr = arrows[num][i] = GameObject::New_ctor(arrowstring);
+            auto* label = arrowTexts[num][i] = GameObject::New_ctor(labelstring);
             arr->AddComponent<Canvas*>();
             arr->AddComponent<HMUI::ImageView*>();
             label->AddComponent<Canvas*>();
@@ -44,7 +44,7 @@ namespace ControllerSettingsHelper{
             arrI->set_material(ArrayUtil::First(Resources::FindObjectsOfTypeAll<Material*>(), [] (Material* x) { return to_utf8(csstrtostr(x->get_name())) == "UINoGlow"; }));
             arr->get_transform()->SetParent(get_transform(), useWorldAngles);
             auto* tmp = label->GetComponentInChildren<TMPro::TextMeshProUGUI*>();
-            tmp->set_text(il2cpp_utils::newcsstr(axis[i]));
+            tmp->set_text(axis[i]);
             tmp->set_fontSize(0.3f);
             tmp->set_alignment(TMPro::TextAlignmentOptions::Center);
             tmp->set_color(colour);
