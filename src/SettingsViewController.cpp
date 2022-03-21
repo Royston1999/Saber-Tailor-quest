@@ -69,12 +69,12 @@ void SaberTailor::Views::SettingsViewController::DidActivate(
                     if (controllers[i]->get_node() == XR::XRNode::RightHand)controllers[i]->get_gameObject()->AddComponent<ControllerSettingsHelper::AxisDisplay*>();
                 }       
             }
-        })->get_gameObject(), "imagine quest getting PC features");
+        })->get_gameObject(), "Spawns axes that track the controller's movement and rotation");
         AddHoverHint(CreateToggle(controllersettingshelpergroup->get_transform(), "Custom Controller Settings Method", SaberTailorMain::config.overrideSettingsMethod, 
         [](bool value) {
             setBool(getConfig().config, "overrideSettingsMethod", value, false); getConfig().Write();
             ConfigHelper::LoadConfig(SaberTailorMain::config, getConfig().config);
-        } )->get_gameObject(), "does things n stuff");
+        } )->get_gameObject(), "Changes the order in which the positions and rotations are applied to the controller");
         AddHoverHint(CreateToggle(controllersettingshelpergroup->get_transform(), "Mirror Z Rotations for Left", SaberTailorMain::config.mirrorZRot, 
         [](bool value) {
             setBool(getConfig().config, "mirrorZRot", value, false); getConfig().Write();
