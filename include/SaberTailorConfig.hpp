@@ -2,7 +2,6 @@
 
 #include <string>
 #include "beatsaber-hook/shared/config/config-utils.hpp"
-#include "config-utils/shared/config-utils.hpp"
 
 #define GET(obj, fieldName, method, required) auto itr = obj.FindMember(fieldName.data()); \
 if (itr == obj.MemberEnd()) { \
@@ -56,6 +55,7 @@ public:
     int currentRotYRight;
     int currentRotZRight;
 
+    bool isAprilFools;
 };
 
 class ConfigHelper {

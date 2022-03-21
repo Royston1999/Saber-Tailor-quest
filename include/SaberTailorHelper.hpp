@@ -16,8 +16,6 @@
 
 namespace IncrementHelper{
     std::string Round(float val, int precision);
-    void setIncrementText(QuestUI::IncrementSetting* increment, float num);
-    void setRotIncrementText(QuestUI::IncrementSetting* increment, int num);
     float fixDumbNumberThing(float num);
     custom_types::Helpers::Coroutine forceUpdateSliderText(SaberTailor::IncrementSlider* slider, std::string text);
 }

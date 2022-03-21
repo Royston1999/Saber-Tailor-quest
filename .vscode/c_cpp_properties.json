@@ -2,8 +2,8 @@
     "configurations": [
         {
             "defines": [
-                "ID=\"scorepercentage\"",
-                "VERSION=\"0.1.0\"",
+                "ID=\"sabertailor\"",
+                "VERSION=\"1.1.0\"",
                 "__GNUC__",
                 "__aarch64__"
             ],
@@ -11,9 +11,10 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/shared",
                 "${workspaceFolder}/include",
+                "${workspaceFolder}/extern/questui/shared/cppcodec",
                 "${workspaceFolder}/extern/**",
                 "${workspaceFolder}/extern/libil2cpp/il2cpp/libil2cpp",
-                "C:/Users/royston/Desktop/Quest_Modding/android-ndk-r23/**"
+                "C:/Users/royst/OneDrive/Desktop/BeatSaberModding/android-ndk-r23b/**"
             ],
             "name": "Quest",
             "cStandard": "c11",

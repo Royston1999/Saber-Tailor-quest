@@ -9,13 +9,13 @@ namespace ControllerSettingsHelper{
 
     void AxisDisplay::Awake(){
         if (to_utf8(csstrtostr(get_transform()->get_gameObject()->get_name())).compare("ControllerLeft") == 0){
-            Vector3 leftrots[3] = {Vector3({90, -90}), Vector3({0,0,0}), Vector3({90, 0})};
+            Vector3 leftrots[3] = {Vector3({90, 0, 90}), Vector3({0,0,0}), Vector3({90, 0, 0})};
             colour = Color::get_red(); useWorldAngles = false; Init(leftrots, 0, -1);
             colour = Color::get_gray(); useWorldAngles = true; Init(leftrots, 1, -1);
             
         }
         if (to_utf8(csstrtostr(get_transform()->get_gameObject()->get_name())).compare("ControllerRight") == 0){
-            Vector3 rightrots[3] = {Vector3({90, 90}), Vector3({0,0,0}), Vector3({90, 0})};
+            Vector3 rightrots[3] = {Vector3({90, 0, -90}), Vector3({0,0,0}), Vector3({90, 0, 0})};
             colour = Color::get_red(); useWorldAngles = false; Init(rightrots, 0, 1);
             colour = Color::get_gray(); useWorldAngles = true; Init(rightrots, 1, 1);
         }

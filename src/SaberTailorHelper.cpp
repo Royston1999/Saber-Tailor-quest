@@ -2,21 +2,11 @@
 
 namespace IncrementHelper{
     std::string Round (float val, int precision){
+        val = (val > -0.001 && val < 0.001) ? 0 : val;
         std::stringstream stream;
         stream << std::fixed << std::setprecision(precision) << val;
         std::string Out = stream.str();
         return Out;
-    }
-
-    void setIncrementText(QuestUI::IncrementSetting* increment, float num){
-        if (num > -0.05 && num < 0.04) num = 0.0f;
-        Array<TMPro::TextMeshProUGUI*>* incText = increment->get_transform()->GetComponentsInChildren<TMPro::TextMeshProUGUI*>();
-        (*incText)[1]->SetText(il2cpp_utils::newcsstr(Round(num, 1) + " cm"));
-    }
-
-    void setRotIncrementText(QuestUI::IncrementSetting* increment, int num){
-        Array<TMPro::TextMeshProUGUI*>* incText = increment->get_transform()->GetComponentsInChildren<TMPro::TextMeshProUGUI*>();
-        (*incText)[1]->SetText(il2cpp_utils::newcsstr(std::to_string(num) + " deg"));
     }
 
     float fixDumbNumberThing(float num){
@@ -30,7 +20,7 @@ namespace IncrementHelper{
         co_yield nullptr;
 
         while (to_utf8(csstrtostr(slider->sliderComponent->text->get_text())).compare(text)!=0){
-            slider->sliderComponent->text->set_text(il2cpp_utils::newcsstr(text));
+            slider->sliderComponent->text->set_text(text);
             co_yield nullptr;
         }
         co_return;
@@ -89,23 +79,15 @@ namespace TransferHelper{
         GlobalNamespace::MainSettingsModelSO* settings = QuestUI::ArrayUtil::First(UnityEngine::Resources::FindObjectsOfTypeAll<GlobalNamespace::MainSettingsModelSO*>());
         // from left hand settings
         if (hand == 0){
-            settings->controllerPosition->value.x = -(SaberTailorMain::config.leftPosX)/100;
-            settings->controllerPosition->value.y = SaberTailorMain::config.leftPosY/100;
-            settings->controllerPosition->value.z = SaberTailorMain::config.leftPosZ/100;
-            settings->controllerRotation->value.x = SaberTailorMain::config.leftRotX;
-            settings->controllerRotation->value.y = -(SaberTailorMain::config.leftRotY);
-            settings->controllerRotation->value.z = SaberTailorMain::config.leftRotZ;
+            settings->dyn_controllerPosition()->set_value(UnityEngine::Vector3(-(SaberTailorMain::config.leftPosX)/100, SaberTailorMain::config.leftPosY/100, SaberTailorMain::config.leftPosZ/100));
+            settings->dyn_controllerRotation()->set_value(UnityEngine::Vector3(SaberTailorMain::config.leftRotX, -(SaberTailorMain::config.leftRotY), SaberTailorMain::config.leftRotZ));
             settings->Save();
             settings->Load(true);
         }
         // from right hand settings 
         if (hand == 1){
-            settings->controllerPosition->value.x = SaberTailorMain::config.rightPosX/100;
-            settings->controllerPosition->value.y = SaberTailorMain::config.rightPosY/100;
-            settings->controllerPosition->value.z = SaberTailorMain::config.rightPosZ/100;
-            settings->controllerRotation->value.x = SaberTailorMain::config.rightRotX;
-            settings->controllerRotation->value.y = SaberTailorMain::config.rightRotY;
-            settings->controllerRotation->value.z = SaberTailorMain::config.rightRotZ;
+            settings->dyn_controllerPosition()->set_value(UnityEngine::Vector3(SaberTailorMain::config.rightPosX/100, SaberTailorMain::config.rightPosY/100, SaberTailorMain::config.rightPosZ/100));
+            settings->dyn_controllerRotation()->set_value(UnityEngine::Vector3(SaberTailorMain::config.rightRotX, SaberTailorMain::config.rightRotY, SaberTailorMain::config.rightRotZ));
             settings->Save();
             settings->Load(true);
         }
@@ -113,24 +95,24 @@ namespace TransferHelper{
     void importFromBaseGame(int hand){
         GlobalNamespace::MainSettingsModelSO* settings = QuestUI::ArrayUtil::First(UnityEngine::Resources::FindObjectsOfTypeAll<GlobalNamespace::MainSettingsModelSO*>());
         if (hand == 0){
-            setFloat(getConfig().config, "leftPosX", -(settings->controllerPosition->value.x) * 100);
-            setFloat(getConfig().config, "leftPosY", settings->controllerPosition->value.y * 100);
-            setFloat(getConfig().config, "leftPosZ", settings->controllerPosition->value.z * 100);
+            setFloat(getConfig().config, "leftPosX", -(settings->dyn_controllerPosition()->get_value().x) * 100);
+            setFloat(getConfig().config, "leftPosY", settings->dyn_controllerPosition()->get_value().y * 100);
+            setFloat(getConfig().config, "leftPosZ", settings->dyn_controllerPosition()->get_value().z * 100);
             getConfig().Write();
-            setInt(getConfig().config, "leftRotX", settings->controllerRotation->value.x);
-            setInt(getConfig().config, "leftRotY", -(settings->controllerRotation->value.y));
-            setInt(getConfig().config, "leftRotZ", settings->controllerRotation->value.z);
+            setInt(getConfig().config, "leftRotX", settings->dyn_controllerRotation()->get_value().x);
+            setInt(getConfig().config, "leftRotY", -(settings->dyn_controllerRotation()->get_value().y));
+            setInt(getConfig().config, "leftRotZ", settings->dyn_controllerRotation()->get_value().z);
             getConfig().Write();
             ConfigHelper::LoadConfig(SaberTailorMain::config, getConfig().config);
         }
         if (hand == 1){
-            setFloat(getConfig().config, "rightPosX", settings->controllerPosition->value.x * 100);
-            setFloat(getConfig().config, "rightPosY", settings->controllerPosition->value.y * 100);
-            setFloat(getConfig().config, "rightPosZ", settings->controllerPosition->value.z * 100);
+            setFloat(getConfig().config, "rightPosX", settings->dyn_controllerPosition()->get_value().x * 100);
+            setFloat(getConfig().config, "rightPosY", settings->dyn_controllerPosition()->get_value().y * 100);
+            setFloat(getConfig().config, "rightPosZ", settings->dyn_controllerPosition()->get_value().z * 100);
             getConfig().Write();
-            setInt(getConfig().config, "rightRotX", settings->controllerRotation->value.x);
-            setInt(getConfig().config, "rightRotY", settings->controllerRotation->value.y);
-            setInt(getConfig().config, "rightRotZ", settings->controllerRotation->value.z);
+            setInt(getConfig().config, "rightRotX", settings->dyn_controllerRotation()->get_value().x);
+            setInt(getConfig().config, "rightRotY", settings->dyn_controllerRotation()->get_value().y);
+            setInt(getConfig().config, "rightRotZ", settings->dyn_controllerRotation()->get_value().z);
             getConfig().Write();
             ConfigHelper::LoadConfig(SaberTailorMain::config, getConfig().config);
         }

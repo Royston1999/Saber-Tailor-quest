@@ -19,21 +19,20 @@ using namespace GlobalNamespace;
 
 QuestUI::SliderSetting* CreateSliderSetting(UnityEngine::Transform* parent, std::string_view name, float increment, float value, float minValue, float maxValue, std::function<void(float)> onValueChange)
     {
-        auto gameObject = GameObject::New_ctor(il2cpp_utils::newcsstr("CUNT"));
+        auto gameObject = GameObject::New_ctor("CUNT");
         gameObject->AddComponent<LayoutElement*>();
         auto sliderSetting = gameObject->AddComponent<QuestUI::SliderSetting*>();
 
         auto timeSliderTemplate = ArrayUtil::First(Resources::FindObjectsOfTypeAll<TimeSlider*>(), [](auto s) { 
-            if (to_utf8(csstrtostr(s->get_name())) != "RangeValuesTextSlider") return false;
+            if (s->get_name() != "RangeValuesTextSlider") return false;
             auto parent1 = s->get_transform()->get_parent();
             if (!parent1) return false; 
-            return to_utf8(csstrtostr(parent1->get_name())) == "SongStart";
+            return parent1->get_name() == "SongStart";
         });
 
         sliderSetting->slider = Object::Instantiate(timeSliderTemplate, gameObject->get_transform(), false);
         sliderSetting->Setup(minValue, maxValue, value, increment, 0.0f, onValueChange);
-        static auto QuestUISlider_cs = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("QuestUISlider");
-        sliderSetting->slider->set_name(QuestUISlider_cs);
+        sliderSetting->slider->set_name("QuestUISlider");
         sliderSetting->slider->GetComponentInChildren<TextMeshProUGUI*>()->set_enableWordWrapping(false);
 
         auto rectTransform = reinterpret_cast<RectTransform*>(sliderSetting->slider->get_transform());
@@ -53,20 +52,18 @@ QuestUI::SliderSetting* CreateSliderSetting(UnityEngine::Transform* parent, std:
     }
 
 SaberTailor::IncrementSlider* SaberTailor::IncrementSlider::CreateIncrementSlider(UnityEngine::Transform* parent, std::string_view text, float increment, float value, float minValue, float maxValue, std::function<void(float)> onValueChange){
-    auto valueControllerTemplate = ArrayUtil::First(Resources::FindObjectsOfTypeAll<FormattedFloatListSettingsValueController*>(), [](auto x) { return to_utf8(csstrtostr(x->get_name())) == "VRRenderingScale"; });
+    auto valueControllerTemplate = ArrayUtil::First(Resources::FindObjectsOfTypeAll<FormattedFloatListSettingsValueController*>(), [](auto x) { return x->get_name() == "VRRenderingScale"; });
 
     FormattedFloatListSettingsValueController* baseSetting = Object::Instantiate(valueControllerTemplate, parent, false);
-    static auto QuestUISliderSetting_cs = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("QuestUISliderSetting");
-    baseSetting->set_name(QuestUISliderSetting_cs);
+    baseSetting->set_name("QuestUISliderSetting");
 
     auto mainCanvas = baseSetting->get_gameObject();
-    static auto ValuePicker_cs = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("ValuePicker");
-    Object::Destroy(mainCanvas->get_transform()->Find(ValuePicker_cs)->get_gameObject());
+    Object::Destroy(mainCanvas->get_transform()->Find("ValuePicker")->get_gameObject());
     Object::Destroy(baseSetting);
 
     mainCanvas->set_active(false);
 
-    auto gameObject = GameObject::New_ctor(il2cpp_utils::newcsstr("CUNT"));
+    auto gameObject = GameObject::New_ctor("CUNT");
     gameObject->AddComponent<LayoutElement*>();
 
     SaberTailor::IncrementSlider* incSlider = gameObject->AddComponent<SaberTailor::IncrementSlider*>();
@@ -80,18 +77,14 @@ SaberTailor::IncrementSlider* SaberTailor::IncrementSlider::CreateIncrementSlide
         incSlider->sliderComponent->OnValueChange(incSlider->sliderComponent->get_value());
     });
     incSlider->sliderComponent = CreateSliderSetting(layout->get_transform(), "", increment, value, minValue, maxValue, onValueChange);
-    incSlider->sliderComponent->slider->enableDragging = false;
+    incSlider->sliderComponent->slider->dyn__enableDragging() = false;
     incSlider->rightButton = QuestUI::BeatSaberUI::CreateUIButton(layout->get_transform(), "", "IncButton", {0, 0}, {8.0f, 8.0f}, [incSlider, increment](){
         float x = incSlider->sliderComponent->get_value() + increment;
         incSlider->sliderComponent->set_value(x);
         incSlider->sliderComponent->OnValueChange(incSlider->sliderComponent->get_value());
     });
 
-    reinterpret_cast<UnityEngine::RectTransform*>(incSlider->leftButton->get_transform())->set_pivot({1.0f, 0.5f});
-    reinterpret_cast<UnityEngine::RectTransform*>(incSlider->rightButton->get_transform())->set_pivot({1.0f, 0.5f});
-
-    static auto NameText_cs = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("NameText"); 
-    auto nameText = mainCanvas->get_transform()->Find(NameText_cs)->get_gameObject();
+    auto nameText = mainCanvas->get_transform()->Find("NameText")->get_gameObject();
     Polyglot::LocalizedTextMeshProUGUI* localizedText = nameText->GetComponent<Polyglot::LocalizedTextMeshProUGUI*>();
     localizedText->set_enabled(false);
     localizedText->set_Key(System::String::_get_Empty());

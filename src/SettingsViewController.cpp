@@ -29,12 +29,12 @@ void SaberTailor::Views::SettingsViewController::DidActivate(
         mainlayout->set_spacing(1.5f);
 
         VerticalLayoutGroup* sabertailorgroup = CreateVerticalLayoutGroup(mainlayout->get_transform());
-        sabertailorgroup->get_gameObject()->AddComponent<QuestUI::Backgroundable*>()->ApplyBackground(il2cpp_utils::newcsstr("round-rect-panel"));
-        sabertailorgroup->set_padding(UnityEngine::RectOffset::New_ctor(5, 5, 2, 2));
+        sabertailorgroup->get_gameObject()->AddComponent<QuestUI::Backgroundable*>()->ApplyBackground("round-rect-panel");
+        sabertailorgroup->set_padding(RectOffset::New_ctor(5, 5, 2, 2));
         
         VerticalLayoutGroup* controllersettingshelpergroup = CreateVerticalLayoutGroup(mainlayout->get_transform());
-        controllersettingshelpergroup->get_gameObject()->AddComponent<QuestUI::Backgroundable*>()->ApplyBackground(il2cpp_utils::newcsstr("round-rect-panel"));
-        controllersettingshelpergroup->set_padding(UnityEngine::RectOffset::New_ctor(5, 5, 2, 2));
+        controllersettingshelpergroup->get_gameObject()->AddComponent<QuestUI::Backgroundable*>()->ApplyBackground("round-rect-panel");
+        controllersettingshelpergroup->set_padding(RectOffset::New_ctor(5, 5, 2, 2));
         
         TMPro::TextMeshProUGUI* sabertailortext = CreateText(sabertailorgroup->get_transform(), "<size=120%>Saber Tailor</size>");
         sabertailortext->set_alignment(TMPro::TextAlignmentOptions::Center);
@@ -43,16 +43,19 @@ void SaberTailor::Views::SettingsViewController::DidActivate(
             setBool(getConfig().config, "isEnabled", value, false); getConfig().Write();
             ConfigHelper::LoadConfig(SaberTailorMain::config, getConfig().config);
         } )->get_gameObject(), "Turn on Saber Tailor Override");
-        leftButton = CreateUIViewControllerButton(sabertailorgroup->get_transform(), "Left Hand Settings", QuestUI::BeatSaberUI::CreateViewController<SaberTailor::Views::SaberTailorLeftHand*>());
-        rightButton = CreateUIViewControllerButton(sabertailorgroup->get_transform(), "Right Hand Settings", QuestUI::BeatSaberUI::CreateViewController<SaberTailor::Views::SaberTailorRightHand*>());
-        HorizontalLayoutGroup* somebuttons = QuestUI::BeatSaberUI::CreateHorizontalLayoutGroup(sabertailorgroup->get_transform());
+        leftButton = CreateUIViewControllerButton(sabertailorgroup->get_transform(), "Left Hand Settings", CreateViewController<SaberTailor::Views::SaberTailorLeftHand*>());
+        rightButton = CreateUIViewControllerButton(sabertailorgroup->get_transform(), "Right Hand Settings", CreateViewController<SaberTailor::Views::SaberTailorRightHand*>());
+        HorizontalLayoutGroup* somebuttons = CreateHorizontalLayoutGroup(sabertailorgroup->get_transform());
         CreateUIButton(somebuttons->get_transform(), "Import Base Game to Left", [](){
             TransferHelper::importFromBaseGame(0);
         });
         CreateUIButton(somebuttons->get_transform(), "Import Base Game to Right", [](){
             TransferHelper::importFromBaseGame(1);
         });
-        
+        if (SaberTailorMain::config.isAprilFools) AddHoverHint(CreateToggle(sabertailorgroup->get_transform(), "Disable April Fools Funny", !SaberTailorMain::config.isAprilFools, 
+        [](bool value) {
+            SaberTailorMain::config.isAprilFools = !value;
+        } )->get_gameObject(), "not sorry LMAO");
         TMPro::TextMeshProUGUI* thing = CreateText(controllersettingshelpergroup->get_transform(), "<size=120%>Controller Settings Helper</size>");
         thing->set_alignment(TMPro::TextAlignmentOptions::Center);
         AddHoverHint(CreateToggle(controllersettingshelpergroup->get_transform(), "Enable Axis Arrows in Menu", SaberTailorMain::config.spawnAxisDisplay, 
@@ -60,10 +63,10 @@ void SaberTailor::Views::SettingsViewController::DidActivate(
             setBool(getConfig().config, "axisEnabled", value, false); getConfig().Write();
             ConfigHelper::LoadConfig(SaberTailorMain::config, getConfig().config);
             if(SaberTailorMain::config.spawnAxisDisplay){
-                Array<GlobalNamespace::VRController*>* controllers = (UnityEngine::Resources::FindObjectsOfTypeAll<GlobalNamespace::VRController*>());
-                for (int i = 0; i<controllers->get_Length(); i++){
-                    if ((*controllers)[i]->get_node() == UnityEngine::XR::XRNode::LeftHand)(*controllers)[i]->get_gameObject()->AddComponent<ControllerSettingsHelper::AxisDisplay*>();
-                    if ((*controllers)[i]->get_node() == UnityEngine::XR::XRNode::RightHand)(*controllers)[i]->get_gameObject()->AddComponent<ControllerSettingsHelper::AxisDisplay*>();
+                ArrayW<GlobalNamespace::VRController*> controllers = UnityEngine::Resources::FindObjectsOfTypeAll<GlobalNamespace::VRController*>();
+                for (int i = 0; i<controllers.Length(); i++){
+                    if (controllers[i]->get_node() == XR::XRNode::LeftHand)controllers[i]->get_gameObject()->AddComponent<ControllerSettingsHelper::AxisDisplay*>();
+                    if (controllers[i]->get_node() == XR::XRNode::RightHand)controllers[i]->get_gameObject()->AddComponent<ControllerSettingsHelper::AxisDisplay*>();
                 }       
             }
         })->get_gameObject(), "imagine quest getting PC features");
