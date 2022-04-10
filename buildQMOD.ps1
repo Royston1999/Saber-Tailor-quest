@@ -1,5 +1,5 @@
 Param(
-    [String] $qmodname="",
+    [String] $qmodname="sabertailor",
 
     [Parameter(Mandatory=$false)]
     [Switch] $clean,
