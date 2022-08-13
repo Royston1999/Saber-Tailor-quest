@@ -4,24 +4,26 @@
 	"info": {
 	  "name": "Saber Tailor",
 	  "id": "sabertailor",
-	  "version": "1.1.0",
+	  "version": "1.1.1",
 	  "url": null,
-	  "additionalData": {}
+	  "additionalData": {
+		"overrideSoName": "libsabertailor.so"
+	  }
 	},
 	"dependencies": [
 	  {
 		"id": "codegen",
-		"versionRange": "^0.22.0",
+		"versionRange": "^0.25.0",
 		"additionalData": {}
 	  },
 	  {
 		"id": "custom-types",
-		"versionRange": "^0.15.8",
+		"versionRange": "^0.15.18",
 		"additionalData": {}
 	  },
 	  {
 		"id": "beatsaber-hook",
-		"versionRange": "=3.7.4",
+		"versionRange": "^3.10.0",
 		"additionalData": {
 		  "extraFiles": [
 			"src/inline-hook"
@@ -30,7 +32,7 @@
 	  },
 	  {
 		"id": "questui",
-		"versionRange": "^0.13.4",
+		"versionRange": "^0.16.4",
 		"additionalData": {}
 	  },
 	  {
