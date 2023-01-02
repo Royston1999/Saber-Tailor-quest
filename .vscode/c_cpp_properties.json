@@ -3,7 +3,7 @@
         {
             "defines": [
                 "ID=\"sabertailor\"",
-                "VERSION=\"1.1.0\"",
+                "VERSION=\"2.0.0\"",
                 "__GNUC__",
                 "__aarch64__"
             ],

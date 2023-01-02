@@ -41,7 +41,7 @@ namespace ControllerSettingsHelper{
             label->GetComponentInChildren<Canvas*>()->set_sortingOrder(31);
             arrI->set_color(colour);
             arrI->set_sprite(Base64ToSprite(Sprites::arrow));
-            arrI->set_material(ArrayUtil::First(Resources::FindObjectsOfTypeAll<Material*>(), [] (Material* x) { return to_utf8(csstrtostr(x->get_name())) == "UINoGlow"; }));
+            arrI->set_material(ArrayUtil::First(Resources::FindObjectsOfTypeAll<Material*>(), [] (Material* x) { return x->get_name() == "UINoGlow"; }));
             arr->get_transform()->SetParent(get_transform(), useWorldAngles);
             auto* tmp = label->GetComponentInChildren<TMPro::TextMeshProUGUI*>();
             tmp->set_text(axis[i]);

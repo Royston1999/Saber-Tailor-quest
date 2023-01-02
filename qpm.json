@@ -1,45 +1,50 @@
 {
-	"sharedDir": "shared",
-	"dependenciesDir": "extern",
-	"info": {
-	  "name": "Saber Tailor",
-	  "id": "sabertailor",
-	  "version": "1.1.1",
-	  "url": null,
-	  "additionalData": {
-		"overrideSoName": "libsabertailor.so"
-	  }
-	},
-	"dependencies": [
-	  {
-		"id": "codegen",
-		"versionRange": "^0.25.0",
-		"additionalData": {}
-	  },
-	  {
-		"id": "custom-types",
-		"versionRange": "^0.15.18",
-		"additionalData": {}
-	  },
-	  {
-		"id": "beatsaber-hook",
-		"versionRange": "^3.10.0",
-		"additionalData": {
-		  "extraFiles": [
-			"src/inline-hook"
-		  ]
-		}
-	  },
-	  {
-		"id": "questui",
-		"versionRange": "^0.16.4",
-		"additionalData": {}
-	  },
-	  {
-		"id": "modloader",
-		"versionRange": "^1.2.3",
-		"additionalData": {}
-	  }
-	],
-	"additionalData": {}
-  }
+  "sharedDir": "shared",
+  "dependenciesDir": "extern",
+  "info": {
+    "name": "Saber Tailor",
+    "id": "sabertailor",
+    "version": "2.0.0",
+    "url": null,
+    "additionalData": {
+      "overrideSoName": "libsabertailor.so"
+    }
+  },
+  "dependencies": [
+    {
+      "id": "codegen",
+      "versionRange": "^0.32.0",
+      "additionalData": {}
+    },
+    {
+      "id": "custom-types",
+      "versionRange": "^0.15.22",
+      "additionalData": {}
+    },
+    {
+      "id": "beatsaber-hook",
+      "versionRange": "^3.14.0",
+      "additionalData": {
+        "extraFiles": [
+          "src/inline-hook"
+        ]
+      }
+    },
+    {
+      "id": "questui",
+      "versionRange": "^0.17.10",
+      "additionalData": {}
+    },
+    {
+      "id": "modloader",
+      "versionRange": "^1.2.3",
+      "additionalData": {}
+    },
+    {
+      "id": "bs-utils",
+      "versionRange": "^0.7.2",
+      "additionalData": {}
+    }
+  ],
+  "additionalData": {}
+}
