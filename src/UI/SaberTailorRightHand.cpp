@@ -14,6 +14,7 @@ using namespace UnityEngine::UI;
 using namespace custom_types::Helpers;
 using namespace IncrementHelper;
 using namespace SaberTailor::UI::RightHand;
+using namespace QuestUI::BeatSaberUI;
 
 namespace SaberTailor::UI::RightHand{
     SaberTailor::IncrementSlider* posX;
@@ -37,15 +38,6 @@ namespace SaberTailor::UI::RightHand{
         rotY->sliderComponent->text->set_text(std::to_string((int)SaberTailorMain::config.rightHandRotation.y) + " deg");
         rotZ->sliderComponent->text->set_text(std::to_string((int)SaberTailorMain::config.rightHandRotation.z) + " deg");
     }
-
-    void notTheBestCode(){
-        SharedCoroutineStarter::get_instance()->StartCoroutine(CoroutineHelper::New(forceUpdateSliderText(posX, SaberTailorMain::config.rightHandPosition.x, true)));
-        SharedCoroutineStarter::get_instance()->StartCoroutine(CoroutineHelper::New(forceUpdateSliderText(posY, SaberTailorMain::config.rightHandPosition.y, true)));
-        SharedCoroutineStarter::get_instance()->StartCoroutine(CoroutineHelper::New(forceUpdateSliderText(posZ, SaberTailorMain::config.rightHandPosition.z, true)));
-        SharedCoroutineStarter::get_instance()->StartCoroutine(CoroutineHelper::New(forceUpdateSliderText(rotX, SaberTailorMain::config.rightHandRotation.x, false)));
-        SharedCoroutineStarter::get_instance()->StartCoroutine(CoroutineHelper::New(forceUpdateSliderText(rotY, SaberTailorMain::config.rightHandRotation.y, false)));
-        SharedCoroutineStarter::get_instance()->StartCoroutine(CoroutineHelper::New(forceUpdateSliderText(rotZ, SaberTailorMain::config.rightHandRotation.z, false)));  
-    }
 }
 
 void SaberTailor::Views::SaberTailorRightHand::DidActivate(bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling) {
@@ -58,18 +50,26 @@ void SaberTailor::Views::SaberTailorRightHand::DidActivate(bool firstActivation,
         SaberTailorMain::config.currentRightHandRotation = Vector3(SaberTailorMain::config.rightHandRotation);
         return;
     }
-    notTheBestCode();
+    SharedCoroutineStarter::get_instance()->StartCoroutine(CoroutineHelper::New(forceUpdateSliderText(false)));
 }
 
 custom_types::Helpers::Coroutine SaberTailor::Views::SaberTailorRightHand::CreateSliders(){
+
     HorizontalLayoutGroup* somebuttons = QuestUI::BeatSaberUI::CreateHorizontalLayoutGroup(rightsabercontainer->get_transform());
-    QuestUI::BeatSaberUI::CreateUIButton(somebuttons->get_transform(), "Mirror to Left", [](){
+    somebuttons->set_childControlWidth(true); somebuttons->set_childForceExpandWidth(false); somebuttons->set_childForceExpandHeight(true);
+    somebuttons->set_childAlignment(TextAnchor::MiddleCenter);
+    auto* mirrorLeft = CreateUIButton(somebuttons->get_transform(), "Mirror to Left", [](){
         TransferHelper::mirrorToLeft();
-        SaberTailor::UI::LeftHand::UpdateSliderValues();
+        UpdateSliderValues();
     });
-    QuestUI::BeatSaberUI::CreateUIButton(somebuttons->get_transform(), "Export to Base Game", [](){
+    AddHoverHint(mirrorLeft->get_gameObject(), "Copies the position and rotation values into the left hand");
+    mirrorLeft->get_gameObject()->GetComponentInChildren<LayoutElement*>()->set_preferredWidth(44.5f);
+    auto* exportButton = CreateUIButton(somebuttons->get_transform(), "Export to Base Game", [](){
         TransferHelper::exportToBaseGame(1);
     });
+    AddHoverHint(exportButton->get_gameObject(), "Takes the current left hand settings and copies them into the base game settings");
+    exportButton->get_gameObject()->GetComponentInChildren<LayoutElement*>()->set_preferredWidth(44.5f);
+
     posX = SaberTailor::IncrementSlider::CreateIncrementSlider(rightsabercontainer, "Position X", SaberTailorMain::config.saberPosIncrement, SaberTailorMain::config.rightHandPosition.x, -100, 100, [](float value){
         setVectorObjectValue(SaberTailorMain::config.currentlyLoadedConfig, "GripRightPosition", "x", std::round(value));
         SetSliderPosText(posX, SaberTailorMain::config.rightHandPosition.x);
@@ -105,13 +105,25 @@ custom_types::Helpers::Coroutine SaberTailor::Views::SaberTailorRightHand::Creat
     });
     co_yield nullptr;
 
-    QuestUI::BeatSaberUI::CreateUIButton(rightsabercontainer->get_transform(), "Revert", [](){
-        PosRotHelper::revertRightHand();
-        SaberTailor::UI::RightHand::UpdateSliderValues();
-    }); 
+    auto* bottomButtons = CreateHorizontalLayoutGroup(rightsabercontainer->get_transform());
+    bottomButtons->set_childControlWidth(true); bottomButtons->set_childForceExpandWidth(false); bottomButtons->set_childForceExpandHeight(true);
+    bottomButtons->set_childAlignment(TextAnchor::MiddleCenter);
+    auto* revertButton = CreateUIButton(bottomButtons->get_transform(), "Revert", [](){
+        PosRotHelper::revertRightHand(false);
+        UpdateSliderValues();
+    });
+    AddHoverHint(revertButton->get_gameObject(), "Reverts all of the values back to what they were when the settings were last opened (or to the values of the last profile change)");
+    revertButton->get_gameObject()->GetComponentInChildren<LayoutElement*>()->set_preferredWidth(44.5f);
+    auto* resetButton = CreateUIButton(bottomButtons->get_transform(), "Reset Values", [](){
+        PosRotHelper::revertRightHand(true);
+        UpdateSliderValues();
+    });
+    AddHoverHint(resetButton->get_gameObject(), "Resets all of the values to 0");
+    resetButton->get_gameObject()->GetComponentInChildren<LayoutElement*>()->set_preferredWidth(44.5f);
+
     posX->increment = getPosIncrement();
     posY->increment = getPosIncrement();
     posZ->increment = getPosIncrement();
-    notTheBestCode();
+    SharedCoroutineStarter::get_instance()->StartCoroutine(CoroutineHelper::New(forceUpdateSliderText(false)));
     co_return;
 }

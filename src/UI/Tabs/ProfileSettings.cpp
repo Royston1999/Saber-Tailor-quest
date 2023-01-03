@@ -28,7 +28,7 @@ void MirrorConfigValuesToUI(){
     using namespace SaberTailor::Tabs::Trail;
     using namespace SaberTailor::Tabs::CSH;
     enableSaberTailor->set_isOn(SaberTailorMain::config.isEnabled);
-    enableBaseGameAdjustment->set_isOn(true);
+    // enableBaseGameAdjustment->set_isOn(true);
     saberPosIncrement->CurrentValue = SaberTailorMain::config.saberPosIncMultiplier;
     saberRotIncrement->CurrentValue = SaberTailorMain::config.saberRotIncrement;
     incrementUnits->SelectCellWithIdx(SaberTailorMain::config.saberPosIncUnit == "cm" ? 0 : 1);

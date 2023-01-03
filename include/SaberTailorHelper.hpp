@@ -18,14 +18,14 @@
 namespace IncrementHelper{
     std::string Round(float val, int precision);
     float fixDumbNumberThing(float num);
-    custom_types::Helpers::Coroutine forceUpdateSliderText(SaberTailor::IncrementSlider* slider, float value, bool posType);
+    custom_types::Helpers::Coroutine forceUpdateSliderText(bool isLeftHand);
     void SetIncrementText(QuestUI::IncrementSetting* setting, std::string text);
     float getPosIncrement();
     void SetSliderPosText(SaberTailor::IncrementSlider* slider, float value);
 }
 namespace PosRotHelper{
-    void revertLeftHand();
-    void revertRightHand();
+    void revertLeftHand(bool toZero);
+    void revertRightHand(bool toZero);
 }
 namespace TransferHelper{
     void mirrorToLeft();

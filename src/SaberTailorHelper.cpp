@@ -14,13 +14,27 @@ namespace IncrementHelper{
         return num;
     }
 
-    custom_types::Helpers::Coroutine forceUpdateSliderText(SaberTailor::IncrementSlider* slider, float value, bool posType)
+    custom_types::Helpers::Coroutine forceUpdateSliderText(bool isLeftHand)
     {
         co_yield reinterpret_cast<System::Collections::IEnumerator*>(UnityEngine::WaitForFixedUpdate::New_ctor());
         co_yield nullptr;
-
-        if (posType) SetSliderPosText(slider, value);
-        else slider->sliderComponent->text->set_text(std::to_string((int)(value)) + " deg");
+        
+        if (isLeftHand){
+            SetSliderPosText(SaberTailor::UI::LeftHand::posX, SaberTailorMain::config.leftHandPosition.x);
+            SetSliderPosText(SaberTailor::UI::LeftHand::posY, SaberTailorMain::config.leftHandPosition.y);
+            SetSliderPosText(SaberTailor::UI::LeftHand::posZ, SaberTailorMain::config.leftHandPosition.z);
+            SaberTailor::UI::LeftHand::rotX->sliderComponent->text->set_text(std::to_string((int)(SaberTailorMain::config.leftHandRotation.x)) + " deg");
+            SaberTailor::UI::LeftHand::rotY->sliderComponent->text->set_text(std::to_string((int)(SaberTailorMain::config.leftHandRotation.y)) + " deg");
+            SaberTailor::UI::LeftHand::rotZ->sliderComponent->text->set_text(std::to_string((int)(SaberTailorMain::config.leftHandRotation.z)) + " deg");
+        }
+        else{
+            SetSliderPosText(SaberTailor::UI::RightHand::posX, SaberTailorMain::config.rightHandPosition.x);
+            SetSliderPosText(SaberTailor::UI::RightHand::posY, SaberTailorMain::config.rightHandPosition.y);
+            SetSliderPosText(SaberTailor::UI::RightHand::posZ, SaberTailorMain::config.rightHandPosition.z);
+            SaberTailor::UI::RightHand::rotX->sliderComponent->text->set_text(std::to_string((int)(SaberTailorMain::config.rightHandRotation.x)) + " deg");
+            SaberTailor::UI::RightHand::rotY->sliderComponent->text->set_text(std::to_string((int)(SaberTailorMain::config.rightHandRotation.y)) + " deg");
+            SaberTailor::UI::RightHand::rotZ->sliderComponent->text->set_text(std::to_string((int)(SaberTailorMain::config.rightHandRotation.z)) + " deg");
+        }
         
         co_return;
     }
@@ -46,13 +60,13 @@ namespace IncrementHelper{
 }
 
 namespace PosRotHelper{
-    void revertLeftHand(){
-        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftPosition", SaberTailorMain::config.currentLeftHandPosition);
-        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftRotation", SaberTailorMain::config.currentLeftHandRotation);
+    void revertLeftHand(bool toZero){
+        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftPosition", toZero ? UnityEngine::Vector3(0.0f, 0.0f, 0.0f) : SaberTailorMain::config.currentLeftHandPosition);
+        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftRotation", toZero ? UnityEngine::Vector3(0.0f, 0.0f, 0.0f) : SaberTailorMain::config.currentLeftHandRotation);
     }
-    void revertRightHand(){
-        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripRightPosition", SaberTailorMain::config.currentRightHandPosition);
-        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripRightRotation", SaberTailorMain::config.currentRightHandRotation);
+    void revertRightHand(bool toZero){
+        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripRightPosition", toZero ? UnityEngine::Vector3(0.0f, 0.0f, 0.0f) : SaberTailorMain::config.currentRightHandPosition);
+        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripRightRotation", toZero ? UnityEngine::Vector3(0.0f, 0.0f, 0.0f) : SaberTailorMain::config.currentRightHandRotation);
     }
 }
 
