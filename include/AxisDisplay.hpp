@@ -9,7 +9,6 @@
 #include "UnityEngine/Canvas.hpp"
 #include "UnityEngine/Material.hpp"
 #include "UnityEngine/MonoBehaviour.hpp"
-#include "questui/shared/BeatSaberUI.hpp"
 #include "custom-types/shared/macros.hpp"
 #include "custom-types/shared/register.hpp"
 #include "SaberTailorConfig.hpp"
@@ -17,18 +16,18 @@
 #include <iostream>
 
 DECLARE_CLASS_CODEGEN(ControllerSettingsHelper, AxisDisplay, UnityEngine::MonoBehaviour,
-    DECLARE_INSTANCE_METHOD(void, Awake);
-    DECLARE_INSTANCE_METHOD(void, Update);
     DECLARE_INSTANCE_METHOD(void, LateUpdate);
+    DECLARE_INSTANCE_METHOD(void, OnDispose);
 
     public:
         UnityEngine::Color colour;
         bool useWorldAngles;
-        UnityEngine::GameObject* arrows[2][3];
-        UnityEngine::GameObject* arrowTexts[2][3];
-        UnityEngine::Vector3 therots[3];
-        int lefty;
-        void Init(UnityEngine::Vector3 rots[], int num, int lefty);
+        UnityEngine::Transform* parent;
+        UnityEngine::GameObject* arrows[3];
+        UnityEngine::GameObject* arrowTexts[3];
+        bool notReplay;
+        void Init(const UnityEngine::Vector3 (&rots)[3] = {UnityEngine::Vector3(90, 0, -90), UnityEngine::Vector3::get_zero(), UnityEngine::Vector3(90, 0, 0)});
+        static void CreateAxes(UnityEngine::Transform* parent);
 );
 
 namespace ControllerSettingsHelper::Sprites{

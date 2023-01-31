@@ -86,11 +86,16 @@ bool ConfigHelper::LoadConfigNew(SaberTailorConfig& con, ConfigDocument& config)
         config.AddMember("overrideSettingsMethod", false, config.GetAllocator());
         config.AddMember("mirrorZRot", false, config.GetAllocator());
         ConfigHelper::WriteToConfigFile(SaberTailorMain::config.currentConfigName);
-        }
+    }
+    if (!config.HasMember("axisInReplay")){
+        config.AddMember("axisInReplay", false, config.GetAllocator());
+        ConfigHelper::WriteToConfigFile(SaberTailorMain::config.currentConfigName);
+    }
         
     con.mirrorZRot = getBool(config, "mirrorZRot").value_or(false);
     con.spawnAxisDisplay = getBool(config, "axisEnabled").value_or(false);
     con.overrideSettingsMethod = getBool(config, "overrideSettingsMethod").value_or(false);
+    con.axisInReplay = getBool(config, "axisInReplay").value_or(false);
     return true;
 }
 

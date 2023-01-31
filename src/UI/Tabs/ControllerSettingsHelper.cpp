@@ -8,11 +8,13 @@ using namespace QuestUI::BeatSaberUI;
 using namespace UnityEngine::UI;
 using namespace UnityEngine;
 using namespace GlobalNamespace;
+using namespace ControllerSettingsHelper;
 
 namespace SaberTailor::Tabs::CSH{
     Toggle* enableSettingsOverride;
     Toggle* enableAxisArrows;
     Toggle* mirrorZRot;
+    Toggle* axisInReplay;
 
     GameObject* CreateCSHSettings(Transform* parent){
         auto* container = CreateScrollableSettingsContainer(parent);
@@ -24,11 +26,7 @@ namespace SaberTailor::Tabs::CSH{
         enableAxisArrows = CreateToggle(container->get_transform(), "Enable Axis Arrows in Menu", SaberTailorMain::config.spawnAxisDisplay, [](bool value) {
             setBool(SaberTailorMain::config.currentlyLoadedConfig, "axisEnabled", value, false);
             if(SaberTailorMain::config.spawnAxisDisplay){
-                ArrayW<VRController*> controllers = Resources::FindObjectsOfTypeAll<VRController*>();
-                for (int i = 0; i<controllers.Length(); i++){
-                    if (controllers[i]->get_node() == XR::XRNode::LeftHand)controllers[i]->get_gameObject()->AddComponent<ControllerSettingsHelper::AxisDisplay*>();
-                    if (controllers[i]->get_node() == XR::XRNode::RightHand)controllers[i]->get_gameObject()->AddComponent<ControllerSettingsHelper::AxisDisplay*>();
-                }       
+                for (auto& controller : Resources::FindObjectsOfTypeAll<VRController*>()) AxisDisplay::CreateAxes(controller->get_transform());   
             }
         });
         AddHoverHint(enableAxisArrows->get_gameObject(), "Spawns axes that track the controller's movement and rotation");
@@ -42,6 +40,11 @@ namespace SaberTailor::Tabs::CSH{
             setBool(SaberTailorMain::config.currentlyLoadedConfig, "mirrorZRot", value, false);
         } );
         AddHoverHint(mirrorZRot->get_gameObject(), "Fixes left hand Z Rotation when using base game settings. INEFFECTIVE WHEN SABER TAILOR IS ENABLED");
+
+        axisInReplay = CreateToggle(container->get_transform(), "Axis Arrows in Replay", SaberTailorMain::config.axisInReplay, [](bool value) {
+            setBool(SaberTailorMain::config.currentlyLoadedConfig, "axisInReplay", value, false);
+        } );
+        AddHoverHint(axisInReplay->get_gameObject(), "Enables the axis arrows to be viewed in replays");
         
         return TabHelper::AdjustedScrollContainerObject(container, false);
     }

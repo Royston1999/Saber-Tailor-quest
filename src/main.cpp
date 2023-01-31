@@ -36,13 +36,21 @@
 #include "GlobalNamespace/IBeatmapLevel.hpp"
 #include "GlobalNamespace/IPreviewBeatmapLevel.hpp"
 
+#include "conditional-dependencies/shared/main.hpp"
+#include "GlobalNamespace/PauseController.hpp"
+#include "GlobalNamespace/IGamePause.hpp"
+#include "Utils/EasyDelegate.hpp"
+
 using namespace UnityEngine;
 using namespace GlobalNamespace;
+using namespace ControllerSettingsHelper;
 
 SaberTailorConfig SaberTailorMain::config;  
 SaberTailor::Views::SettingsViewController* SaberTailorMain::saberTailorMainSettingsPage = nullptr;
 SaberTailor::Views::SaberTailorLeftHand* SaberTailorMain::saberTailorLeftHand = nullptr;
 SaberTailor::Views::SaberTailorRightHand* SaberTailorMain::saberTailorRightHand = nullptr;
+bool isReplay = false;
+bool metalitReplay = false;
 
 ModInfo modInfo; // Stores the ID and version of our mod, and is sent to the modloader upon startup
 AprilFools::RandomSaber randomSaber;
@@ -146,15 +154,10 @@ MAKE_HOOK_MATCH(AxisOnStart, &MainMenuViewController::DidActivate, void, MainMen
 {
     // enables axis arrows on start up or after soft restart if turned on in config
     AxisOnStart(self, firstActivation, addedToHierarchy, screenSystemEnabling);
-    if (firstActivation && SaberTailorMain::config.spawnAxisDisplay){
-        ArrayW<VRController*> controllers = (Resources::FindObjectsOfTypeAll<VRController*>());
-        for (int i = 0; i<controllers.Length(); i++){
-            if (controllers[i]->get_node() == XR::XRNode::LeftHand)(controllers)[i]->get_gameObject()->AddComponent<ControllerSettingsHelper::AxisDisplay*>();
-            if (controllers[i]->get_node() == XR::XRNode::RightHand)(controllers)[i]->get_gameObject()->AddComponent<ControllerSettingsHelper::AxisDisplay*>();
-        }
-    }
-    if (firstActivation){
-        AprilFools::Init();
+    if (!firstActivation) return;
+    AprilFools::Init();
+    if (SaberTailorMain::config.spawnAxisDisplay){
+        for (auto& controller : Resources::FindObjectsOfTypeAll<VRController*>()) AxisDisplay::CreateAxes(controller->get_transform());
     }
 }
 
@@ -191,6 +194,9 @@ MAKE_HOOK_MATCH(SaberModelContainer_Start, &SaberModelContainer::Start, void, Sa
             trail->granularity = SaberTailorMain::config.trailGranularity;
             trail->trailRenderer->set_enabled(SaberTailorMain::config.enableSaberTrails);
         }
+        if (isReplay && SaberTailorMain::config.axisInReplay){
+            AxisDisplay::CreateAxes(self->saber->get_transform());
+        }
     }
 }
 
@@ -204,13 +210,17 @@ MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(GameplayCoreSceneSetupData_ctor, "", "Gamep
         AprilFools::generateRandomSaberMovementsForSession();
     }
 }
-// MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(GameplayLevelSceneTransitionEvents_ctor, "", "GameplayLevelSceneTransitionEvents", ".ctor", void, GameplayLevelSceneTransitionEvents* self, StandardLevelScenesTransitionSetupDataSO* standardLevelScenesTransitionSetupData, MissionLevelScenesTransitionSetupDataSO* missionLevelScenesTransitionSetupData, MultiplayerLevelScenesTransitionSetupDataSO* multiplayerLevelScenesTransitionSetupData)
-// {
-//     GameplayLevelSceneTransitionEvents_ctor(self, standardLevelScenesTransitionSetupData, missionLevelScenesTransitionSetupData, multiplayerLevelScenesTransitionSetupData);
-//     if (SaberTailorMain::config.isAprilFools){
-//         self->add_anyGameplayLevelDidFinishEvent(custom_types::MakeDelegate<System::Action*>(classof(System::Action*),  static_cast<std::function<void()>>([](){AprilFools::Init();})));
-//     }
-// }
+MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(GameplayLevelSceneTransitionEvents_ctor, "", "GameplayLevelSceneTransitionEvents", ".ctor", void, GameplayLevelSceneTransitionEvents* self, StandardLevelScenesTransitionSetupDataSO* standardLevelScenesTransitionSetupData, MissionLevelScenesTransitionSetupDataSO* missionLevelScenesTransitionSetupData, MultiplayerLevelScenesTransitionSetupDataSO* multiplayerLevelScenesTransitionSetupData)
+{
+    GameplayLevelSceneTransitionEvents_ctor(self, standardLevelScenesTransitionSetupData, missionLevelScenesTransitionSetupData, multiplayerLevelScenesTransitionSetupData);
+    self->add_anyGameplayLevelDidFinishEvent(EasyDelegate::MakeDelegate<System::Action*>([](){
+        if (isReplay && SaberTailorMain::config.spawnAxisDisplay) 
+            for (auto& axis : Resources::FindObjectsOfTypeAll<AxisDisplay*>()) 
+                if (static_cast<std::string>(axis->parent->get_name()).find("Controller") != std::string::npos) 
+                    axis->get_gameObject()->set_active(true);
+        isReplay = false;
+    }));
+}
 MAKE_HOOK_MATCH(NoteMissed, &BeatmapObjectManager::HandleNoteControllerNoteWasMissed, void, BeatmapObjectManager* self, NoteController* noteController)
 {
     NoteMissed(self, noteController);
@@ -227,6 +237,23 @@ MAKE_HOOK_MATCH(NoteCut, &BeatmapObjectManager::HandleNoteControllerNoteWasCut, 
         int hand = noteCutInfo.heldRef.saberType.value;
         AprilFools::updateValuesOnMiss(hand);
     }
+}
+
+MAKE_HOOK_MATCH(MenuTransitionsHelper_StartStandardLevel, static_cast<void(MenuTransitionsHelper::*)(StringW, IDifficultyBeatmap*, IPreviewBeatmapLevel*, OverrideEnvironmentSettings*, ColorScheme*, GameplayModifiers*, PlayerSpecificSettings*, PracticeSettings*, StringW, bool, bool, System::Action*, System::Action_2<StandardLevelScenesTransitionSetupDataSO*, LevelCompletionResults*>*, System::Action_2<LevelScenesTransitionSetupDataSO*, LevelCompletionResults*>*)>(&MenuTransitionsHelper::StartStandardLevel),
+        void, MenuTransitionsHelper* self, StringW gameMode, IDifficultyBeatmap* f2, IPreviewBeatmapLevel* f3, OverrideEnvironmentSettings* f4, ColorScheme* f5, GameplayModifiers* f6, PlayerSpecificSettings* f7, PracticeSettings* f8, StringW f9, bool f10, bool f11, System::Action* f12, System::Action_2<StandardLevelScenesTransitionSetupDataSO*, LevelCompletionResults*>* f13, System::Action_2<LevelScenesTransitionSetupDataSO*, LevelCompletionResults*>* f14) {
+            MenuTransitionsHelper_StartStandardLevel(self, gameMode, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14);
+            auto metalit = CondDeps::Find<bool>("replay", "IsInReplay");
+            if (gameMode == "Replay" || (metalit.has_value() && (*metalit)())) isReplay = true;
+        }
+
+MAKE_HOOK_MATCH(PauseController_Start, &PauseController::Start, void, PauseController* self){
+    PauseController_Start(self);
+    if (!isReplay) return;
+    auto func = [](bool value){
+        for (auto& axis : Resources::FindObjectsOfTypeAll<AxisDisplay*>()) axis->get_gameObject()->set_active(value);
+    };
+    self->gamePause->add_didPauseEvent(EasyDelegate::MakeDelegate<System::Action*>([func](){func(false);}));
+    self->gamePause->add_didResumeEvent(EasyDelegate::MakeDelegate<System::Action*>([func](){func(true);}));
 }
 
 
@@ -247,6 +274,8 @@ extern "C" void load() {
     INSTALL_HOOK(getLogger(), NoteCut);
     INSTALL_HOOK(getLogger(), GameplayCoreSceneSetupData_ctor);
     INSTALL_HOOK(getLogger(), SaberModelContainer_Start);
-    // INSTALL_HOOK(getLogger(), GameplayLevelSceneTransitionEvents_ctor);
+    INSTALL_HOOK(getLogger(), MenuTransitionsHelper_StartStandardLevel);
+    INSTALL_HOOK(getLogger(), GameplayLevelSceneTransitionEvents_ctor);
+    INSTALL_HOOK(getLogger(), PauseController_Start);
     getLogger().info("Installed all hooks!");
 }

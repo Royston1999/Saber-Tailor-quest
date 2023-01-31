@@ -25,7 +25,6 @@ namespace SaberTailor::UI::LeftHand{
     SaberTailor::IncrementSlider* rotY;
     SaberTailor::IncrementSlider* rotZ;
     void UpdateSliderValues(){
-        using namespace IncrementHelper;
         posX->sliderComponent->set_value(SaberTailorMain::config.leftHandPosition.x);
         posY->sliderComponent->set_value(SaberTailorMain::config.leftHandPosition.y);
         posZ->sliderComponent->set_value(SaberTailorMain::config.leftHandPosition.z);
@@ -61,7 +60,7 @@ custom_types::Helpers::Coroutine SaberTailor::Views::SaberTailorLeftHand::Create
     somebuttons->set_childAlignment(TextAnchor::MiddleCenter);
     auto* mirrorRight = CreateUIButton(somebuttons->get_transform(), "Mirror to Right", [](){
         TransferHelper::mirrorToRight();
-        UpdateSliderValues();
+        SaberTailor::UI::RightHand::UpdateSliderValues();
     });
     AddHoverHint(mirrorRight->get_gameObject(), "Copies the position and rotation values into the right hand");
     mirrorRight->get_gameObject()->GetComponentInChildren<LayoutElement*>()->set_preferredWidth(44.5f);

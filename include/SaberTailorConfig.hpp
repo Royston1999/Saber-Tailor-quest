@@ -32,6 +32,7 @@ public:
     bool spawnAxisDisplay;
     bool overrideSettingsMethod;
     bool mirrorZRot;
+    bool axisInReplay;
 
     UnityEngine::Vector3 rightHandPosition;
     UnityEngine::Vector3 leftHandPosition;

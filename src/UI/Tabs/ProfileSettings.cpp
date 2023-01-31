@@ -40,6 +40,7 @@ void MirrorConfigValuesToUI(){
     enableSettingsOverride->set_isOn(SaberTailorMain::config.overrideSettingsMethod);
     enableAxisArrows->set_isOn(SaberTailorMain::config.spawnAxisDisplay);
     mirrorZRot->set_isOn(SaberTailorMain::config.mirrorZRot);
+    axisInReplay->set_isOn(SaberTailorMain::config.axisInReplay);
 
     enableScaleSettings->set_isOn(SaberTailorMain::config.enableScaleSettings);
     scaleHitbox->set_isOn(SaberTailorMain::config.scaleHitbox);
