@@ -213,13 +213,7 @@ MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(GameplayCoreSceneSetupData_ctor, "", "Gamep
 MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(GameplayLevelSceneTransitionEvents_ctor, "", "GameplayLevelSceneTransitionEvents", ".ctor", void, GameplayLevelSceneTransitionEvents* self, StandardLevelScenesTransitionSetupDataSO* standardLevelScenesTransitionSetupData, MissionLevelScenesTransitionSetupDataSO* missionLevelScenesTransitionSetupData, MultiplayerLevelScenesTransitionSetupDataSO* multiplayerLevelScenesTransitionSetupData)
 {
     GameplayLevelSceneTransitionEvents_ctor(self, standardLevelScenesTransitionSetupData, missionLevelScenesTransitionSetupData, multiplayerLevelScenesTransitionSetupData);
-    self->add_anyGameplayLevelDidFinishEvent(EasyDelegate::MakeDelegate<System::Action*>([](){
-        if (isReplay && SaberTailorMain::config.spawnAxisDisplay) 
-            for (auto& axis : Resources::FindObjectsOfTypeAll<AxisDisplay*>()) 
-                if (static_cast<std::string>(axis->parent->get_name()).find("Controller") != std::string::npos) 
-                    axis->get_gameObject()->set_active(true);
-        isReplay = false;
-    }));
+    self->add_anyGameplayLevelDidFinishEvent(EasyDelegate::MakeDelegate<System::Action*>([](){isReplay = false;}));
 }
 MAKE_HOOK_MATCH(NoteMissed, &BeatmapObjectManager::HandleNoteControllerNoteWasMissed, void, BeatmapObjectManager* self, NoteController* noteController)
 {
@@ -249,9 +243,10 @@ MAKE_HOOK_MATCH(MenuTransitionsHelper_StartStandardLevel, static_cast<void(MenuT
 MAKE_HOOK_MATCH(PauseController_Start, &PauseController::Start, void, PauseController* self){
     PauseController_Start(self);
     if (!isReplay) return;
-    auto func = [](bool value){
-        for (auto& axis : Resources::FindObjectsOfTypeAll<AxisDisplay*>()) axis->get_gameObject()->set_active(value);
-    };
+    std::function<void(bool)> func = [](bool value){
+        for (auto& axis : Resources::FindObjectsOfTypeAll<AxisDisplay*>()) 
+            if (axis->get_name() == "AxisDisplayReplay") axis->get_gameObject()->set_active(value);
+    };   
     self->gamePause->add_didPauseEvent(EasyDelegate::MakeDelegate<System::Action*>([func](){func(false);}));
     self->gamePause->add_didResumeEvent(EasyDelegate::MakeDelegate<System::Action*>([func](){func(true);}));
 }

@@ -11,8 +11,8 @@ namespace ControllerSettingsHelper{
     Material* UINoGlow;
 
     AxisDisplay* CreateFor(Color colour, Transform* parent, bool useWorldAngles = false){
-        auto* axis = GameObject::New_ctor("AxisDisplay")->AddComponent<AxisDisplay*>();
-        axis->notReplay = static_cast<std::string>(parent->get_name()).find("Controller") != std::string::npos;
+        auto* axis = GameObject::New_ctor(isReplay ? "AxisDisplayReplay" : "AxisDisplay")->AddComponent<AxisDisplay*>();
+        axis->notReplay = !isReplay;
         axis->parent = parent;
         axis->colour = colour;
         axis->useWorldAngles = useWorldAngles;
