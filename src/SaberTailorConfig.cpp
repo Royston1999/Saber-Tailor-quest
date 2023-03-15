@@ -6,155 +6,11 @@
 using namespace rapidjson;
 using namespace UnityEngine;
 
-std::optional<bool> getBool(Value& obj, std::string_view fieldName, bool required) {
-    GET(obj, fieldName, GetBool, required);
-}
-
-std::optional<int> getInt(Value& obj, std::string_view fieldName, bool required) {
-    GET(obj, fieldName, GetInt, required);
-}
-
-std::optional<float> getFloat(Value& obj, std::string_view fieldName, bool required) {
-    GET(obj, fieldName, GetFloat, required);
-}
-
-std::optional<bool> setBool(Value& obj, std::string_view fieldName, bool value, bool required) {
-    auto itr = obj.FindMember(fieldName.data());
-    if (itr == obj.MemberEnd()) {
-        if (required) {
-        }
-    }
-    itr->value.SetBool(value);
-    ConfigHelper::WriteToConfigFile(SaberTailorMain::config.currentConfigName);
-    return true;
-}
-
-std::optional<int> setInt(Value& obj, std::string_view fieldName, int value, bool required) {
-    auto itr = obj.FindMember(fieldName.data());
-    if (itr == obj.MemberEnd()) {
-        if (required) {
-        }
-    }
-    itr->value.SetInt(value);
-    ConfigHelper::WriteToConfigFile(SaberTailorMain::config.currentConfigName);
-    return true;
-}
-
-void setString(ConfigDocument& obj, std::string stringField, std::string string){
-    char buffer[string.length()+5]; int len = sprintf(buffer, "%s", string.c_str());
-    obj.FindMember(stringField)->value.SetString(buffer, len, obj.GetAllocator());
-    ConfigHelper::WriteToConfigFile(SaberTailorMain::config.currentConfigName);
-}
-
-UnityEngine::Vector3 LoadVectorObject(ConfigDocument& config, std::string vectorObj){
-    auto object = config.FindMember(vectorObj);
-    if (object == config.MemberEnd()) return UnityEngine::Vector3::get_zero();
-    int x = object->value.FindMember("x")->value.GetInt();
-    int y = object->value.FindMember("y")->value.GetInt();
-    int z = object->value.FindMember("z")->value.GetInt();
-    return UnityEngine::Vector3(x, y, z);
-}
-
-bool ConfigHelper::LoadConfigNew(SaberTailorConfig& con, ConfigDocument& config) {
-    int temp = getInt(config, "ConfigVersion").value_or(0);
-    con.enableScaleSettings = getBool(config, "IsSaberScaleModEnabled").value_or(false);
-    con.scaleHitbox = getBool(config, "SaberScaleHitbox").value_or(false);
-    con.saberLength = getInt(config, "SaberLength").value_or(0);
-    con.saberGirth = getInt(config, "SaberGirth").value_or(0);
-    con.enableTrailSettings = getBool(config, "IsTrailModEnabled").value_or(false);
-    con.enableSaberTrails = getBool(config, "IsTrailEnabled").value_or(false);
-    con.trailDuration = getInt(config, "TrailDuration").value_or(0);
-    con.trailGranularity = getInt(config, "TrailGranularity").value_or(0);
-    con.whitestepDuration = getInt(config, "TrailWhiteSectionDuration").value_or(0);
-    con.isEnabled = getBool(config, "IsGripModEnabled").value_or(false);
-    
-    con.rightHandPosition = LoadVectorObject(config, "GripRightPosition");
-    con.leftHandPosition = LoadVectorObject(config, "GripLeftPosition");
-    con.rightHandRotation = LoadVectorObject(config, "GripRightRotation");
-    con.leftHandRotation = LoadVectorObject(config, "GripLeftRotation");
-    
-    bool temp2 = getBool(config, "ModifyMenuHiltGrip").value_or(false);
-    bool wtfEvenIsThisSetting = getBool(config, "UseBaseGameAdjustmentMode").value_or(true);
-    con.saberPosIncMultiplier = getInt(config, "SaberPosIncValue").value_or(0);
-    con.saberPosIncrement = getInt(config, "SaberPosIncrement").value_or(0);
-    con.saberRotIncrement = getInt(config, "SaberRotIncrement").value_or(0);
-    con.saberPosIncUnit = config.FindMember("SaberPosIncUnit")->value.GetString();
-    con.saberPosDisplayValue = config.FindMember("SaberPosDisplayUnit")->value.GetString();
-
-    if (!config.HasMember("axisEnabled")) {
-        config.AddMember("axisEnabled", false, config.GetAllocator());
-        config.AddMember("overrideSettingsMethod", false, config.GetAllocator());
-        config.AddMember("mirrorZRot", false, config.GetAllocator());
-        ConfigHelper::WriteToConfigFile(SaberTailorMain::config.currentConfigName);
-    }
-    if (!config.HasMember("axisInReplay")){
-        config.AddMember("axisInReplay", false, config.GetAllocator());
-        ConfigHelper::WriteToConfigFile(SaberTailorMain::config.currentConfigName);
-    }
-        
-    con.mirrorZRot = getBool(config, "mirrorZRot").value_or(false);
-    con.spawnAxisDisplay = getBool(config, "axisEnabled").value_or(false);
-    con.overrideSettingsMethod = getBool(config, "overrideSettingsMethod").value_or(false);
-    con.axisInReplay = getBool(config, "axisInReplay").value_or(false);
-    return true;
-}
-
-rapidjson::Value CreateVectorObject(UnityEngine::Vector3 values){
-    Document::ValueType vector(kObjectType);
-    vector.AddMember("x", (int)std::round(values.x), SaberTailorMain::config.currentlyLoadedConfig.GetAllocator());
-    vector.AddMember("y", (int)std::round(values.y), SaberTailorMain::config.currentlyLoadedConfig.GetAllocator());
-    vector.AddMember("z", (int)std::round(values.z), SaberTailorMain::config.currentlyLoadedConfig.GetAllocator());
-    return vector;
-}
-
-void setVectorObjectValue(rapidjson::Value& obj, std::string_view vectorField, std::string_view coord, int value){
-    auto itr = obj.FindMember(vectorField.data())->value.GetObject();
-    itr.FindMember(coord.data())->value.SetInt(value);
-    ConfigHelper::WriteToConfigFile(SaberTailorMain::config.currentConfigName);
-}
-
-void setVectorObject(rapidjson::Value& obj, std::string vectorField, UnityEngine::Vector3 vector){
-    auto value = CreateVectorObject(vector);
-    obj.FindMember(vectorField)->value.Swap(value);
-    ConfigHelper::WriteToConfigFile(SaberTailorMain::config.currentConfigName);  
-}
-
-void CreateBlankConfig(std::string name){
-    ConfigDocument &config = SaberTailorMain::config.currentlyLoadedConfig;
-    config.SetObject();
-    config.RemoveAllMembers();
-    config.AddMember("ConfigVersion", 5, config.GetAllocator());
-    config.AddMember("IsSaberScaleModEnabled", false, config.GetAllocator());
-    config.AddMember("SaberScaleHitbox", false, config.GetAllocator());
-    config.AddMember("SaberLength", 100, config.GetAllocator());
-    config.AddMember("SaberGirth", 100, config.GetAllocator());
-    config.AddMember("IsTrailModEnabled", false, config.GetAllocator());
-    config.AddMember("IsTrailEnabled", true, config.GetAllocator());
-    config.AddMember("TrailDuration", 400, config.GetAllocator());
-    config.AddMember("TrailGranularity", 60, config.GetAllocator());
-    config.AddMember("TrailWhiteSectionDuration", 100, config.GetAllocator());
-    config.AddMember("IsGripModEnabled", false, config.GetAllocator());
-
-    config.AddMember("GripLeftPosition", CreateVectorObject(Vector3::get_zero()), config.GetAllocator());
-    config.AddMember("GripRightPosition", CreateVectorObject(Vector3::get_zero()), config.GetAllocator());
-    config.AddMember("GripLeftRotation", CreateVectorObject(Vector3::get_zero()), config.GetAllocator());
-    config.AddMember("GripRightRotation", CreateVectorObject(Vector3::get_zero()), config.GetAllocator());
-    config.AddMember("GripLeftOffset", CreateVectorObject(Vector3::get_zero()), config.GetAllocator()); // what the fuck are these
-    config.AddMember("GripRightOffset", CreateVectorObject(Vector3::get_zero()), config.GetAllocator()); // these are borderline useless
-
-    config.AddMember("ModifyMenuHiltGrip", true, config.GetAllocator());
-    config.AddMember("UseBaseGameAdjustmentMode", true, config.GetAllocator());
-    config.AddMember("SaberPosIncrement", 1, config.GetAllocator());
-    config.AddMember("SaberPosIncValue", 1, config.GetAllocator());
-    config.AddMember("SaberRotIncrement", 1, config.GetAllocator());
-    config.AddMember("SaberPosIncUnit", "mm", config.GetAllocator());
-    config.AddMember("SaberPosDisplayUnit", "cm", config.GetAllocator());
-
-    config.AddMember("axisEnabled", false, config.GetAllocator());
-    config.AddMember("overrideSettingsMethod", false, config.GetAllocator());
-    config.AddMember("mirrorZRot", false, config.GetAllocator());
-
-    ConfigHelper::WriteToConfigFile(name);
+void ConfigHelper::CreateBlankConfig(std::string name){
+    SaberTailor::SaberTailorProfileConfig newConfig;
+    std::string filePath = getDataDir(modInfo) + name + ".json";
+    writefile(filePath, CreateJSONString(newConfig));
+    ReadFromFile(filePath, SaberTailorMain::config.currentConfig);
 }
 
 bool ThisStupidFuckingQuestChildTriedToDeleteTheDefaultConfig(){
@@ -178,15 +34,9 @@ bool ConfigHelper::LoadConfig(SaberTailorConfig& con, ConfigDocument& config) {
     std::string dir = getDataDir(modInfo);
     if(!direxists(dir)) int made = mkpath(dir);
     if (config.HasMember("isEnabled")) ConfigHelper::ConvertOldConfig();
-    else if (!config.HasMember("currentConfig")) {
-        config.AddMember("currentConfig", "Default", config.GetAllocator()); getConfig().Write();
-        CreateBlankConfig("Default");
-        con.currentConfigName = "Default";
-        }
     else {
         if (ThisStupidFuckingQuestChildTriedToDeleteTheDefaultConfig()) CreateBlankConfig("Default");
-        con.currentConfigName = config.FindMember("currentConfig")->value.GetString();
-        LoadConfigFile(con.currentConfigName);
+        LoadConfigFile("Default");
     }
     return true;
 }
@@ -207,15 +57,13 @@ void ConfigHelper::LoadConfigFile(std::string fileName){
         if (fileName == "Default") CreateBlankConfig(fileName);
         else return LoadConfigFile("Default");
     };
-    ConfigDocument d;
-    if(!parsejsonfile(d, file)) {
-        getLogger().info("Failed to read map data");
+    getMainConfig().currentConfig.SetValue(fileName);
+
+    try {
+        ReadFromFile(file, SaberTailorMain::config.currentConfig);
+    } catch(const std::exception& err) {
         return LoadConfigFile("Default");
     }
-    SaberTailorMain::config.currentConfigName = fileName;
-    SaberTailorMain::config.currentlyLoadedConfig.Swap(d);
-    setString(getConfig().config, "currentConfig", fileName); getConfig().Write();
-    LoadConfigNew(SaberTailorMain::config, SaberTailorMain::config.currentlyLoadedConfig);
 }
 
 std::vector<StringW> ConfigHelper::GetExistingConfigs(){
@@ -240,15 +88,24 @@ std::vector<StringW> ConfigHelper::GetExistingConfigs(){
     return directories;
 }
 
-void ConfigHelper::WriteToConfigFile(std::string fileName){
+void ConfigHelper::WriteToConfigFile(std::string fileName, bool reloadConfig){
     std::string dir = getDataDir(modInfo);
     std::string file = dir + fileName + ".json";
+    writefile(file, CreateJSONString(SaberTailorMain::config.currentConfig));
+    if (reloadConfig) ReadFromFile(file, SaberTailorMain::config.currentConfig);
+}
+
+
+template<JSONClassDerived T>
+std::string ConfigHelper::CreateJSONString(const T& toSerialize){
+    rapidjson::Document document;
+    document.SetObject();
+    toSerialize.Serialize(document.GetAllocator()).Swap(document);
+
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    SaberTailorMain::config.currentlyLoadedConfig.Accept(writer);
-    std::string s = buffer.GetString();
-    writefile(file, s);
-    LoadConfigNew(SaberTailorMain::config, SaberTailorMain::config.currentlyLoadedConfig);
+    document.Accept(writer);
+    return buffer.GetString();
 }
 
 void ConfigHelper::DeleteFile(std::string fileName){
@@ -262,74 +119,63 @@ void ConfigHelper::CreateNewConfigFile(std::string fileName, std::string configT
     std::string dir = getDataDir(modInfo);
     std::string file = dir + fileName + ".json";
     ConfigDocument d;
+    getMainConfig().currentConfig.SetValue(fileName);
     if (configToCopyFrom == "") CreateBlankConfig(fileName);
     else{
-        if(!parsejsonfile(d, dir + configToCopyFrom + ".json")) {getLogger().info("oh no"); return;}
-        SaberTailorMain::config.currentlyLoadedConfig.Swap(d);
+        try {
+            ReadFromFile(dir + configToCopyFrom + ".json", SaberTailorMain::config.currentConfig);
+        } catch(const std::exception& err) {
+            return getLogger().info("oh no");
+        }
+        WriteToConfigFile(fileName, false);
     }
-    rapidjson::StringBuffer buffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    SaberTailorMain::config.currentlyLoadedConfig.Accept(writer);
-    std::string s = buffer.GetString();
-    writefile(file, s);
+}
+
+template<class T>
+std::optional<T> GetValue(rapidjson::GenericObject<false, rapidjson::Value>& object, std::string name){
+    auto itr = object.FindMember(name);
+    if (itr != object.MemberEnd() && !itr->value.IsNull()) return std::optional<T>(itr->value.Get<T>());
+    else return std::nullopt;
 }
 
 void ConfigHelper::ConvertOldConfig(){
-    ConfigDocument &config = SaberTailorMain::config.currentlyLoadedConfig;
-    ConfigDocument &oldConfig = getConfig().config;
-    config.SetObject();
-    config.RemoveAllMembers();
-    config.AddMember("ConfigVersion", 5, config.GetAllocator());
-    config.AddMember("IsSaberScaleModEnabled", false, config.GetAllocator());
-    config.AddMember("SaberScaleHitbox", false, config.GetAllocator());
-    config.AddMember("SaberLength", 100, config.GetAllocator());
-    config.AddMember("SaberGirth", 100, config.GetAllocator());
-    config.AddMember("IsTrailModEnabled", false, config.GetAllocator());
-    config.AddMember("IsTrailEnabled", true, config.GetAllocator());
-    config.AddMember("TrailDuration", 400, config.GetAllocator());
-    config.AddMember("TrailGranularity", 60, config.GetAllocator());
-    config.AddMember("TrailWhiteSectionDuration", 100, config.GetAllocator());
-    config.AddMember("IsGripModEnabled", getBool(oldConfig, "isEnabled").value_or(false), config.GetAllocator());
+    SaberTailor::SaberTailorProfileConfig convertedConfig;
+    auto oldConfig = getConfig().config.GetObject();
 
-    float leftPosX = getFloat(oldConfig, "leftPosX").value_or(0); leftPosX = leftPosX < 0 ? (leftPosX * 10 - 0.5f) : (leftPosX * 10 + 0.5f);
-    float leftPosY = getFloat(oldConfig, "leftPosY").value_or(0); leftPosY = leftPosY < 0 ? (leftPosY * 10 - 0.5f) : (leftPosY * 10 + 0.5f);
-    float leftPosZ = getFloat(oldConfig, "leftPosZ").value_or(0); leftPosZ = leftPosZ < 0 ? (leftPosZ * 10 - 0.5f) : (leftPosZ * 10 + 0.5f);
+    float leftPosX = GetValue<float>(oldConfig, "leftPosX").value_or(0);
+    float leftPosY = GetValue<float>(oldConfig, "leftPosY").value_or(0);
+    float leftPosZ = GetValue<float>(oldConfig, "leftPosZ").value_or(0);
 
-    float rightPosX = getFloat(oldConfig, "rightPosX").value_or(0); rightPosX = rightPosX < 0 ? (rightPosX * 10 - 0.5f) : (rightPosX * 10 + 0.5f);
-    float rightPosY = getFloat(oldConfig, "rightPosY").value_or(0); rightPosY = rightPosY < 0 ? (rightPosY * 10 - 0.5f) : (rightPosY * 10 + 0.5f);
-    float rightPosZ = getFloat(oldConfig, "rightPosZ").value_or(0); rightPosZ = rightPosZ < 0 ? (rightPosZ * 10 - 0.5f) : (rightPosZ * 10 + 0.5f);
+    float rightPosX = GetValue<float>(oldConfig, "rightPosX").value_or(0);
+    float rightPosY = GetValue<float>(oldConfig, "rightPosY").value_or(0);
+    float rightPosZ = GetValue<float>(oldConfig, "rightPosZ").value_or(0);
 
-    int rightRotX = getInt(oldConfig, "rightRotX").value_or(0);
-    int rightRotY = getInt(oldConfig, "rightRotY").value_or(0);
-    int rightRotZ = getInt(oldConfig, "rightRotZ").value_or(0);
+    int rightRotX = GetValue<int>(oldConfig, "rightRotX").value_or(0);
+    int rightRotY = GetValue<int>(oldConfig, "rightRotY").value_or(0);
+    int rightRotZ = GetValue<int>(oldConfig, "rightRotZ").value_or(0);
 
-    int leftRotX = getInt(oldConfig, "leftRotX").value_or(0);
-    int leftRotY = getInt(oldConfig, "leftRotY").value_or(0);
-    int leftRotZ = getInt(oldConfig, "leftRotZ").value_or(0);
-    
-    config.AddMember("GripLeftPosition", CreateVectorObject(Vector3(leftPosX, leftPosY, leftPosZ)), config.GetAllocator());
-    config.AddMember("GripRightPosition", CreateVectorObject(Vector3(rightPosX, rightPosY, rightPosZ)), config.GetAllocator());
-    config.AddMember("GripLeftRotation", CreateVectorObject(Vector3(leftRotX, leftRotY, leftRotZ)), config.GetAllocator());
-    config.AddMember("GripRightRotation", CreateVectorObject(Vector3(rightRotX, rightRotY, rightRotZ)), config.GetAllocator());
-    config.AddMember("GripLeftOffset", CreateVectorObject(Vector3::get_zero()), config.GetAllocator()); // what the fuck are these
-    config.AddMember("GripRightOffset", CreateVectorObject(Vector3::get_zero()), config.GetAllocator()); // these are borderline useless
+    int leftRotX = GetValue<int>(oldConfig, "leftRotX").value_or(0);
+    int leftRotY = GetValue<int>(oldConfig, "leftRotY").value_or(0);
+    int leftRotZ = GetValue<int>(oldConfig, "leftRotZ").value_or(0);
 
-    config.AddMember("ModifyMenuHiltGrip", true, config.GetAllocator());
-    config.AddMember("UseBaseGameAdjustmentMode", true, config.GetAllocator());
-    config.AddMember("SaberPosIncrement", 1, config.GetAllocator());
-    config.AddMember("SaberPosIncValue", 1, config.GetAllocator());
-    config.AddMember("SaberRotIncrement", 1, config.GetAllocator());
-    config.AddMember("SaberPosIncUnit", "mm", config.GetAllocator());
-    config.AddMember("SaberPosDisplayUnit", "cm", config.GetAllocator());
+    convertedConfig.leftHandPosition = Vector3(round(leftPosX * 10.0f), round(leftPosY * 10.0f), round(leftPosZ * 10.0f));
+    convertedConfig.rightHandPosition = Vector3(round(rightPosX * 10.0f), round(rightPosY * 10.0f), round(rightPosZ * 10.0f));
+    convertedConfig.leftHandRotation = Vector3(leftRotX, leftRotY, leftRotZ);
+    convertedConfig.rightHandRotation = Vector3(rightRotX, rightRotY, rightRotZ);
 
-    config.AddMember("axisEnabled", getBool(oldConfig, "axisEnabled").value_or(false), config.GetAllocator());
-    config.AddMember("overrideSettingsMethod", getBool(oldConfig, "overrideSettingsMethod").value_or(false), config.GetAllocator());
-    config.AddMember("mirrorZRot", getBool(oldConfig, "mirrorZRot").value_or(false), config.GetAllocator());
+    convertedConfig.axisEnabled = GetValue<bool>(oldConfig, "axisEnabled").value_or(false);
+    convertedConfig.overrideSettingsMethod = GetValue<bool>(oldConfig, "overrideSettingsMethod").value_or(false);
+    convertedConfig.mirrorZRot = GetValue<bool>(oldConfig, "mirrorZRot").value_or(false);
+    convertedConfig.isGripModEnabled = GetValue<bool>(oldConfig, "isEnabled").value_or(false);
 
-    oldConfig.SetObject();
-    oldConfig.RemoveAllMembers();
-    oldConfig.AddMember("currentConfig", "Default", oldConfig.GetAllocator()); getConfig().Write();
-    SaberTailorMain::config.currentConfigName = "Default";
+    getConfig().config.SetObject();
+    getConfig().config.RemoveAllMembers();
+    getConfig().config.AddMember("currentConfig", "Default", getConfig().config.GetAllocator()); getConfig().Write();
+    getMainConfig().currentConfig.SetValue("Default");
 
-    ConfigHelper::WriteToConfigFile("Default");
+    std::string dir = getDataDir(modInfo);
+    if(!direxists(dir)) mkpath(dir);
+    std::string filePath = dir + "Default.json";
+    writefile(filePath, CreateJSONString(convertedConfig));
+    ReadFromFile(filePath, SaberTailorMain::config.currentConfig);
 }

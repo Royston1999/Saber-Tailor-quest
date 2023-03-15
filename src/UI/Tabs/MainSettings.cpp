@@ -35,12 +35,12 @@ namespace SaberTailor::Tabs::MainSettings{
     }
 
     void updatePosDisplayValues(){
-        IncrementHelper::SetSliderPosText(SaberTailor::UI::RightHand::posX, SaberTailorMain::config.rightHandPosition.x);
-        IncrementHelper::SetSliderPosText(SaberTailor::UI::RightHand::posY, SaberTailorMain::config.rightHandPosition.y);
-        IncrementHelper::SetSliderPosText(SaberTailor::UI::RightHand::posZ, SaberTailorMain::config.rightHandPosition.z);
-        IncrementHelper::SetSliderPosText(SaberTailor::UI::LeftHand::posX, SaberTailorMain::config.leftHandPosition.x);
-        IncrementHelper::SetSliderPosText(SaberTailor::UI::LeftHand::posY, SaberTailorMain::config.leftHandPosition.y);
-        IncrementHelper::SetSliderPosText(SaberTailor::UI::LeftHand::posZ, SaberTailorMain::config.leftHandPosition.z);
+        IncrementHelper::SetSliderPosText(SaberTailor::UI::RightHand::posX, GET_VALUE(rightHandPosition).x);
+        IncrementHelper::SetSliderPosText(SaberTailor::UI::RightHand::posY, GET_VALUE(rightHandPosition).y);
+        IncrementHelper::SetSliderPosText(SaberTailor::UI::RightHand::posZ, GET_VALUE(rightHandPosition).z);
+        IncrementHelper::SetSliderPosText(SaberTailor::UI::LeftHand::posX, GET_VALUE(leftHandPosition).x);
+        IncrementHelper::SetSliderPosText(SaberTailor::UI::LeftHand::posY, GET_VALUE(leftHandPosition).y);
+        IncrementHelper::SetSliderPosText(SaberTailor::UI::LeftHand::posZ, GET_VALUE(leftHandPosition).z);
     }
 
     GameObject* CreateMainSettings(Transform* parent){
@@ -50,8 +50,8 @@ namespace SaberTailor::Tabs::MainSettings{
         text->set_fontSize(6.0f);
         text->set_alignment(TMPro::TextAlignmentOptions::Center);
 
-        enableSaberTailor = CreateToggle(container->get_transform(), "Enable Saber Tailor Grip Adjustment", SaberTailorMain::config.isEnabled, [](bool value) {
-                setBool(SaberTailorMain::config.currentlyLoadedConfig, "IsGripModEnabled", value, false);
+        enableSaberTailor = CreateToggle(container->get_transform(), "Enable Saber Tailor Grip Adjustment", GET_VALUE(isGripModEnabled), [](bool value) {
+                SET_VALUE(isGripModEnabled, value);
             });
             AddHoverHint(enableSaberTailor->get_gameObject(), "Turn on Saber Tailor Override");
 
@@ -60,33 +60,32 @@ namespace SaberTailor::Tabs::MainSettings{
         // enableBaseGameAdjustment->set_enabled(false);
         // AddHoverHint(enableBaseGameAdjustment->get_gameObject(), "No Male, this toggle does not work. It does nothing. It's purely there to pretend like I am making a full port of the PC version of Saber Tailor. Thank you for your understanding");
 
-        incrementUnits = CreateDropdown(container->get_transform(), "Position Increment Units", SaberTailorMain::config.saberPosIncUnit, {"cm", "mm"}, [](StringW inc){
+        incrementUnits = CreateDropdown(container->get_transform(), "Position Increment Units", SaberTailorMain::config.currentConfig.saberPosIncUnit, {"cm", "mm"}, [](StringW inc){
             std::string unit = static_cast<std::string>(inc);
-            setString(SaberTailorMain::config.currentlyLoadedConfig, "SaberPosIncUnit", unit);
-            setInt(SaberTailorMain::config.currentlyLoadedConfig, "SaberPosIncrement", SaberTailorMain::config.saberPosIncMultiplier * (SaberTailorMain::config.saberPosIncUnit == "cm" ? 10 : 1), false);
-            IncrementHelper::SetIncrementText(saberPosIncrement, std::to_string(SaberTailorMain::config.saberPosIncMultiplier) + " " + SaberTailorMain::config.saberPosIncUnit);
-            updatePosIncrements(SaberTailorMain::config.saberPosIncrement);
+            SET_VALUE(saberPosIncUnit, unit);
+            SET_VALUE(saberPosIncrement, GET_VALUE(saberPosIncValue) * (GET_VALUE(saberPosIncUnit) == "cm" ? 10 : 1));
+            updatePosIncrements(SaberTailorMain::config.currentConfig.saberPosIncrement);
         });
         AddHoverHint(incrementUnits->get_gameObject(), "Changes whether a single buttom press increments the position values in millimetres or centimetres");
 
-        saberPosIncrement = CreateIncrementSetting(container->get_transform(), "Saber Position Increment", 0, 1, SaberTailorMain::config.saberPosIncMultiplier, 1, 10, [](float value){
-            setInt(SaberTailorMain::config.currentlyLoadedConfig, "SaberPosIncValue", (int)value, false);
-            setInt(SaberTailorMain::config.currentlyLoadedConfig, "SaberPosIncrement", SaberTailorMain::config.saberPosIncMultiplier * (SaberTailorMain::config.saberPosIncUnit == "cm" ? 10 : 1), false);
-            IncrementHelper::SetIncrementText(saberPosIncrement, std::to_string(SaberTailorMain::config.saberPosIncMultiplier) + " " + SaberTailorMain::config.saberPosIncUnit);
-            updatePosIncrements(SaberTailorMain::config.saberPosIncrement);
+        saberPosIncrement = CreateIncrementSetting(container->get_transform(), "Saber Position Increment", 0, 1, GET_VALUE(saberPosIncValue), 1, 10, [](float value){
+            SET_VALUE(saberPosIncValue, (int)value);
+            SET_VALUE(saberPosIncrement, GET_VALUE(saberPosIncValue) * (GET_VALUE(saberPosIncUnit) == "cm" ? 10 : 1));
+            IncrementHelper::SetIncrementText(saberPosIncrement, std::to_string(GET_VALUE(saberPosIncValue)) + " " + GET_VALUE(saberPosIncUnit));
+            updatePosIncrements(GET_VALUE(saberPosIncrement));
         });
         AddHoverHint(saberPosIncrement->get_gameObject(), "Changes how much each buttom press increments the position values");
 
-        saberRotIncrement = CreateIncrementSetting(container->get_transform(), "Saber Rotation Increment", 0, 1, SaberTailorMain::config.saberRotIncrement, 1, 10, [](float value){
-            setInt(SaberTailorMain::config.currentlyLoadedConfig, "SaberRotIncrement", (int)value, false);
-            IncrementHelper::SetIncrementText(saberRotIncrement, std::to_string(SaberTailorMain::config.saberRotIncrement) + " deg");
+        saberRotIncrement = CreateIncrementSetting(container->get_transform(), "Saber Rotation Increment", 0, 1, GET_VALUE(saberRotIncrement), 1, 10, [](float value){
+            SET_VALUE(saberRotIncrement, (int)value);
+            IncrementHelper::SetIncrementText(saberRotIncrement, std::to_string(GET_VALUE(saberRotIncrement)) + " deg");
             updateRotIncrements(value);
         });
         AddHoverHint(saberRotIncrement->get_gameObject(), "Changes how much each buttom press increments the rotation values");
 
-        displayUnits = CreateDropdown(container->get_transform(), "Saber Pos. Display Unit", SaberTailorMain::config.saberPosDisplayValue, {"cm", "inches", "miles", "nmi"}, [](StringW inc){
+        displayUnits = CreateDropdown(container->get_transform(), "Saber Pos. Display Unit", GET_VALUE(saberPosDisplayUnit), {"cm", "inches", "miles", "nmi"}, [](StringW inc){
             std::string unit = static_cast<std::string>(inc);
-            setString(SaberTailorMain::config.currentlyLoadedConfig, "SaberPosDisplayUnit", unit);
+            SET_VALUE(saberPosDisplayUnit, unit);
             updatePosDisplayValues();
         });
         AddHoverHint(displayUnits->get_gameObject(), "Changes what unit of measurement is displayed for the position values (this does not affect the incrementing)");
@@ -103,8 +102,8 @@ namespace SaberTailor::Tabs::MainSettings{
         })->get_gameObject(), "Copies the current base game controller settings values into the currently loaded config");
         
 
-        IncrementHelper::SetIncrementText(saberPosIncrement, std::to_string(SaberTailorMain::config.saberPosIncMultiplier) + " " + SaberTailorMain::config.saberPosIncUnit);
-        IncrementHelper::SetIncrementText(saberRotIncrement, std::to_string(SaberTailorMain::config.saberRotIncrement) + " deg");
+        IncrementHelper::SetIncrementText(saberPosIncrement, std::to_string(GET_VALUE(saberPosIncValue)) + " " + GET_VALUE(saberPosIncUnit));
+        IncrementHelper::SetIncrementText(saberRotIncrement, std::to_string(GET_VALUE(saberRotIncrement)) + " deg");
 
         return TabHelper::AdjustedScrollContainerObject(container, true);
     }

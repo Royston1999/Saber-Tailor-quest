@@ -94,10 +94,10 @@ MAKE_HOOK_MATCH(ControllerTransform, &OculusVRHelper::AdjustControllerTransform,
     // right controller
     if (node == XR::XRNode::RightHand)
     {
-        if(SaberTailorMain::config.isEnabled) // overrides base game settings with the saber tailor config (right hand)
+        if (SaberTailorMain::config.currentConfig.isGripModEnabled) // overrides base game settings with the saber tailor config (right hand)
         {
-            position = Vector3(SaberTailorMain::config.rightHandPosition) /1000;
-            rotation = Vector3(SaberTailorMain::config.rightHandRotation);
+            position = Vector3(GET_VALUE(rightHandPosition)) /1000;
+            rotation = Vector3(GET_VALUE(rightHandRotation));
         }
         if (SaberTailorMain::config.isAprilFools && transform->get_name() == "RightHand"){
             rotation.x += randomSaber.rightXRot.first;
@@ -105,7 +105,7 @@ MAKE_HOOK_MATCH(ControllerTransform, &OculusVRHelper::AdjustControllerTransform,
             rotation.z += randomSaber.rightZRot.first;
             position.z += randomSaber.zPos;
         }
-        if(SaberTailorMain::config.overrideSettingsMethod) // overrides the order in which the settings are applied to the controller
+        if (SaberTailorMain::config.currentConfig.overrideSettingsMethod) // overrides the order in which the settings are applied to the controller
         {
             transform->Rotate(Vector3(0, 0, rotation.z));
 			transform->Translate(position);
@@ -117,19 +117,19 @@ MAKE_HOOK_MATCH(ControllerTransform, &OculusVRHelper::AdjustControllerTransform,
     // left controller
     if (node == XR::XRNode::LeftHand)
     {
-        if (SaberTailorMain::config.isEnabled) // overrides base game settings with the saber tailor config (left hand)
+        if (SaberTailorMain::config.currentConfig.isGripModEnabled) // overrides base game settings with the saber tailor config (left hand)
         {
-            position = Vector3(SaberTailorMain::config.leftHandPosition) /1000;
-            rotation = Vector3(SaberTailorMain::config.leftHandRotation);
+            position = Vector3(GET_VALUE(leftHandPosition)) /1000;
+            rotation = Vector3(GET_VALUE(leftHandRotation));
         }
-        else if (SaberTailorMain::config.mirrorZRot) rotation.z = -rotation.z; // imagine the base game not having bugs
+        else if (SaberTailorMain::config.currentConfig.mirrorZRot) rotation.z = -rotation.z; // imagine the base game not having bugs
         if (SaberTailorMain::config.isAprilFools && transform->get_name() == "LeftHand"){
             rotation.x += randomSaber.leftXRot.first;
             rotation.y += randomSaber.leftYRot.first;
             rotation.z += randomSaber.leftZRot.first;
             position.z += randomSaber.zPos;
         }
-        if(SaberTailorMain::config.overrideSettingsMethod) // overrides the order in which the settings are applied to the controller
+        if (SaberTailorMain::config.currentConfig.overrideSettingsMethod) // overrides the order in which the settings are applied to the controller
         {
             transform->Rotate(Vector3(0, 0, rotation.z));
 			transform->Translate(position);
@@ -156,7 +156,7 @@ MAKE_HOOK_MATCH(AxisOnStart, &MainMenuViewController::DidActivate, void, MainMen
     AxisOnStart(self, firstActivation, addedToHierarchy, screenSystemEnabling);
     if (!firstActivation) return;
     AprilFools::Init();
-    if (SaberTailorMain::config.spawnAxisDisplay){
+    if (SaberTailorMain::config.currentConfig.axisEnabled){
         for (auto& controller : Resources::FindObjectsOfTypeAll<VRController*>()) AxisDisplay::CreateAxes(controller->get_transform());
     }
 }
@@ -164,21 +164,21 @@ MAKE_HOOK_MATCH(AxisOnStart, &MainMenuViewController::DidActivate, void, MainMen
 MAKE_HOOK_MATCH(SaberModelContainer_Start, &SaberModelContainer::Start, void, SaberModelContainer* self) {
     SaberModelContainer_Start(self);
     if (SceneManagement::SceneManager::GetActiveScene().get_name() == "GameCore") {
-        if (SaberTailorMain::config.enableScaleSettings){
+        if (SaberTailorMain::config.currentConfig.isSaberScaleModEnabled){
             Saber* saber = self->saber;
             auto saberBottom = Vector3::get_zero();
             auto saberTop = Vector3::get_zero();
             saberBottom = saberBottom + Vector3(saber->saberBladeBottomTransform->get_position());
             saberTop = saberTop + Vector3(saber->saberBladeTopTransform->get_position());
-            float length = (float)(SaberTailorMain::config.saberLength) / 100.0f;
-            float width = (float)(SaberTailorMain::config.saberGirth) / 100.0f;
+            float length = (float)(SaberTailorMain::config.currentConfig.saberLength) / 100.0f;
+            float width = (float)(SaberTailorMain::config.currentConfig.saberGirth) / 100.0f;
 
             auto currentScale = self->get_transform()->get_localScale();
             self->get_transform()->set_localScale({currentScale.x * width, currentScale.y * width, currentScale.z * length});
             auto currentPos = self->get_transform()->get_position();
             self->get_transform()->set_position({currentPos.x, currentPos.y, currentPos.z + (length - 1)/6});
 
-            if (!SaberTailorMain::config.scaleHitbox){
+            if (!SaberTailorMain::config.currentConfig.saberScaleHitbox){
                 // the trails are bound to this and idk how to fix it when saber length is adjusted :pain:
                 saber->saberBladeBottomTransform->set_position(saberBottom);
                 saber->saberBladeTopTransform->set_position(saberTop);
@@ -187,14 +187,14 @@ MAKE_HOOK_MATCH(SaberModelContainer_Start, &SaberModelContainer::Start, void, Sa
             else bs_utils::Submission::disable(modInfo); 
         }
         else bs_utils::Submission::enable(modInfo);
-        if (SaberTailorMain::config.enableTrailSettings){
+        if (SaberTailorMain::config.currentConfig.isTrailModEnabled){
             auto trail = self->get_transform()->GetComponentInChildren<SaberModelController*>()->saberTrail;
-            trail->trailDuration = (float)SaberTailorMain::config.trailDuration/1000.0f;
-            trail->whiteSectionMaxDuration = (float)SaberTailorMain::config.whitestepDuration/1000.0f;
-            trail->granularity = SaberTailorMain::config.trailGranularity;
-            trail->trailRenderer->set_enabled(SaberTailorMain::config.enableSaberTrails);
+            trail->trailDuration = (float)SaberTailorMain::config.currentConfig.trailDuration/1000.0f;
+            trail->whiteSectionMaxDuration = (float)SaberTailorMain::config.currentConfig.trailWhiteSectionDuration/1000.0f;
+            trail->granularity = SaberTailorMain::config.currentConfig.trailGranularity;
+            trail->trailRenderer->set_enabled(SaberTailorMain::config.currentConfig.isTrailEnabled);
         }
-        if (isReplay && SaberTailorMain::config.axisInReplay){
+        if (isReplay && SaberTailorMain::config.currentConfig.axisInReplay){
             AxisDisplay::CreateAxes(self->saber->get_transform());
         }
     }
@@ -251,11 +251,11 @@ MAKE_HOOK_MATCH(PauseController_Start, &PauseController::Start, void, PauseContr
     self->gamePause->add_didResumeEvent(EasyDelegate::MakeDelegate<System::Action*>([func](){func(true);}));
 }
 
-
 // Called later on in the game loading - a good time to install function hooks
 extern "C" void load() {
     Modloader::requireMod("Qclaws");
     il2cpp_functions::Init();
+    getMainConfig().Init(modInfo);
     SaberTailorMain::loadConfig();
     QuestUI::Init();
     custom_types::Register::AutoRegister();

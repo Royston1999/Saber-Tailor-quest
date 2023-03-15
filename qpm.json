@@ -49,6 +49,16 @@
       "id": "conditional-dependencies",
       "versionRange": "^0.1.0",
       "additionalData": {}
+    },
+    {
+      "id": "config-utils",
+      "versionRange": "^1.0.2",
+      "additionalData": {}
+    },
+    {
+      "id": "rapidjson-macros",
+      "versionRange": "^0.4.6",
+      "additionalData": {}
     }
   ],
   "additionalData": {}

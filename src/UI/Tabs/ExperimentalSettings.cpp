@@ -28,28 +28,28 @@ void adjustControllerSettings(){
     for (auto& controller : controllers){
         if (controller->get_node() == XR::XRNode::LeftHand){
             auto x = controller->get_transform()->InverseTransformDirection(Quaternion::get_identity().get_eulerAngles());
-            setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftRotation", x);
+            SET_VALUE(leftHandRotation, x);
             SaberTailor::UI::LeftHand::UpdateSliderValues();
         }
         else if (controller->get_node() == XR::XRNode::RightHand){ 
-            auto localRot = SaberTailorMain::config.rightHandRotation;
-            auto localPos = SaberTailorMain::config.rightHandPosition;
+            auto localRot = GET_VALUE(rightHandRotation);
+            auto localPos = GET_VALUE(rightHandPosition);
             auto rot = controller->get_transform()->get_localRotation().get_eulerAngles();
             // fixAngles(rot);
             auto toRotate = Vector3::get_zero(); 
             for (int i=0; i<100; i++){
                 controller->get_transform()->Rotate(-toRotate);
                 toRotate = Vector3(rot.y == 0 ? -rot.x : 0, -rot.y, rot.x == 0 ? -rot.z : 0);
-                getLogger().info("pre rot: %.2f, %.2f, %.2f", rot.x, rot.y, rot.z);
+                // getLogger().info("pre rot: %.2f, %.2f, %.2f", rot.x, rot.y, rot.z);
                 controller->get_transform()->Rotate(toRotate);
                 rot = controller->get_transform()->get_localRotation().get_eulerAngles();
                 fixAngles(rot);
-                getLogger().info("post rot: %.2f, %.2f, %.2f", rot.x, rot.y, rot.z);
+                // getLogger().info("post rot: %.2f, %.2f, %.2f", rot.x, rot.y, rot.z);
                 if (std::abs(rot.z) <= 0.5 && std::abs(rot.y) <= 0.5) break;
             }
-            getLogger().info("settings angles: %.2f, %.2f, %.2f", localRot.x, localRot.y, localRot.z);
+            // getLogger().info("settings angles: %.2f, %.2f, %.2f", localRot.x, localRot.y, localRot.z);
             fixAngles(toRotate);
-            setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripRightRotation", toRotate);
+            SET_VALUE(rightHandRotation, toRotate);
             SaberTailor::UI::RightHand::UpdateSliderValues();
         }
     }
@@ -65,7 +65,7 @@ custom_types::Helpers::Coroutine CountdownRoutine(){
         if (!rotatorModal->isShown) co_return;
     }
     if (!rotatorModal->isShown) co_return;
-    setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripRightRotation", {0, 0, 0});
+    SET_VALUE(rightHandRotation, UnityEngine::Vector3::get_zero());
     co_yield nullptr;
     adjustControllerSettings();
     countdownText->set_alpha(0.0f);

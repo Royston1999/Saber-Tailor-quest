@@ -20,20 +20,20 @@ namespace IncrementHelper{
         co_yield nullptr;
         
         if (isLeftHand){
-            SetSliderPosText(SaberTailor::UI::LeftHand::posX, SaberTailorMain::config.leftHandPosition.x);
-            SetSliderPosText(SaberTailor::UI::LeftHand::posY, SaberTailorMain::config.leftHandPosition.y);
-            SetSliderPosText(SaberTailor::UI::LeftHand::posZ, SaberTailorMain::config.leftHandPosition.z);
-            SaberTailor::UI::LeftHand::rotX->sliderComponent->text->set_text(std::to_string((int)(SaberTailorMain::config.leftHandRotation.x)) + " deg");
-            SaberTailor::UI::LeftHand::rotY->sliderComponent->text->set_text(std::to_string((int)(SaberTailorMain::config.leftHandRotation.y)) + " deg");
-            SaberTailor::UI::LeftHand::rotZ->sliderComponent->text->set_text(std::to_string((int)(SaberTailorMain::config.leftHandRotation.z)) + " deg");
+            SetSliderPosText(SaberTailor::UI::LeftHand::posX, GET_VALUE(leftHandPosition).x);
+            SetSliderPosText(SaberTailor::UI::LeftHand::posY, GET_VALUE(leftHandPosition).y);
+            SetSliderPosText(SaberTailor::UI::LeftHand::posZ, GET_VALUE(leftHandPosition).z);
+            SaberTailor::UI::LeftHand::rotX->sliderComponent->text->set_text(std::to_string((int)(GET_VALUE(leftHandRotation).x)) + " deg");
+            SaberTailor::UI::LeftHand::rotY->sliderComponent->text->set_text(std::to_string((int)(GET_VALUE(leftHandRotation).y)) + " deg");
+            SaberTailor::UI::LeftHand::rotZ->sliderComponent->text->set_text(std::to_string((int)(GET_VALUE(leftHandRotation).z)) + " deg");
         }
         else{
-            SetSliderPosText(SaberTailor::UI::RightHand::posX, SaberTailorMain::config.rightHandPosition.x);
-            SetSliderPosText(SaberTailor::UI::RightHand::posY, SaberTailorMain::config.rightHandPosition.y);
-            SetSliderPosText(SaberTailor::UI::RightHand::posZ, SaberTailorMain::config.rightHandPosition.z);
-            SaberTailor::UI::RightHand::rotX->sliderComponent->text->set_text(std::to_string((int)(SaberTailorMain::config.rightHandRotation.x)) + " deg");
-            SaberTailor::UI::RightHand::rotY->sliderComponent->text->set_text(std::to_string((int)(SaberTailorMain::config.rightHandRotation.y)) + " deg");
-            SaberTailor::UI::RightHand::rotZ->sliderComponent->text->set_text(std::to_string((int)(SaberTailorMain::config.rightHandRotation.z)) + " deg");
+            SetSliderPosText(SaberTailor::UI::RightHand::posX, GET_VALUE(rightHandPosition).x);
+            SetSliderPosText(SaberTailor::UI::RightHand::posY, GET_VALUE(rightHandPosition).y);
+            SetSliderPosText(SaberTailor::UI::RightHand::posZ, GET_VALUE(rightHandPosition).z);
+            SaberTailor::UI::RightHand::rotX->sliderComponent->text->set_text(std::to_string((int)(GET_VALUE(rightHandRotation).x)) + " deg");
+            SaberTailor::UI::RightHand::rotY->sliderComponent->text->set_text(std::to_string((int)(GET_VALUE(rightHandRotation).y)) + " deg");
+            SaberTailor::UI::RightHand::rotZ->sliderComponent->text->set_text(std::to_string((int)(GET_VALUE(rightHandRotation).z)) + " deg");
         }
         
         co_return;
@@ -44,12 +44,12 @@ namespace IncrementHelper{
     }
 
     float getPosIncrement(){
-        return ((float)(SaberTailorMain::config.saberPosIncrement));
+        return ((float)(GET_VALUE(saberPosIncrement)));
     }
 
     void SetSliderPosText(SaberTailor::IncrementSlider* slider, float value){
         int realValue = std::round(value);
-        std::string unit = SaberTailorMain::config.saberPosDisplayValue;
+        std::string unit = GET_VALUE(saberPosDisplayUnit);
         std::string text;
         if (unit == "inches") text = Round(realValue/25.4f, 3) + " inches";
         else if (unit == "miles") text = Round(realValue/1609340.0f, 10) + " miles";
@@ -61,41 +61,41 @@ namespace IncrementHelper{
 
 namespace PosRotHelper{
     void revertLeftHand(bool toZero){
-        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftPosition", toZero ? UnityEngine::Vector3(0.0f, 0.0f, 0.0f) : SaberTailorMain::config.currentLeftHandPosition);
-        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftRotation", toZero ? UnityEngine::Vector3(0.0f, 0.0f, 0.0f) : SaberTailorMain::config.currentLeftHandRotation);
+        SET_VALUE(leftHandPosition, toZero ? UnityEngine::Vector3(0.0f, 0.0f, 0.0f) : GET_VALUE(currentLeftHandPosition));
+        SET_VALUE(leftHandRotation, toZero ? UnityEngine::Vector3(0.0f, 0.0f, 0.0f) : GET_VALUE(currentLeftHandRotation));
     }
     void revertRightHand(bool toZero){
-        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripRightPosition", toZero ? UnityEngine::Vector3(0.0f, 0.0f, 0.0f) : SaberTailorMain::config.currentRightHandPosition);
-        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripRightRotation", toZero ? UnityEngine::Vector3(0.0f, 0.0f, 0.0f) : SaberTailorMain::config.currentRightHandRotation);
+        SET_VALUE(rightHandPosition, toZero ? UnityEngine::Vector3(0.0f, 0.0f, 0.0f) : GET_VALUE(currentRightHandPosition));
+        SET_VALUE(rightHandRotation, toZero ? UnityEngine::Vector3(0.0f, 0.0f, 0.0f) : GET_VALUE(currentRightHandRotation));
     }
 }
 
 namespace TransferHelper{
     void mirrorToLeft(){
-        auto rPos = SaberTailorMain::config.rightHandPosition;
-        auto rRot = SaberTailorMain::config.rightHandRotation;
-        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftPosition", UnityEngine::Vector3(-rPos.x, rPos.y, rPos.z));
-        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftRotation", UnityEngine::Vector3(rRot.x, -rRot.y, -rRot.z));
+        auto rPos = GET_VALUE(rightHandPosition);
+        auto rRot = GET_VALUE(rightHandRotation);
+        SET_VALUE(leftHandPosition, UnityEngine::Vector3(-rPos.x, rPos.y, rPos.z));
+        SET_VALUE(leftHandRotation, UnityEngine::Vector3(rRot.x, -rRot.y, -rRot.z));
     }
     void mirrorToRight(){
-        auto lPos = SaberTailorMain::config.leftHandPosition;
-        auto lRot = SaberTailorMain::config.leftHandRotation;
-        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripRightPosition", UnityEngine::Vector3(-lPos.x, lPos.y, lPos.z));
-        setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripRightRotation", UnityEngine::Vector3(lRot.x, -lRot.y, -lRot.z));
+        auto lPos = GET_VALUE(leftHandPosition);
+        auto lRot = GET_VALUE(leftHandRotation);
+        SET_VALUE(rightHandPosition, UnityEngine::Vector3(-lPos.x, lPos.y, lPos.z));
+        SET_VALUE(rightHandRotation, UnityEngine::Vector3(lRot.x, -lRot.y, -lRot.z));
     }
     void exportToBaseGame(int hand){
         GlobalNamespace::MainSettingsModelSO* settings = QuestUI::ArrayUtil::First(UnityEngine::Resources::FindObjectsOfTypeAll<GlobalNamespace::MainSettingsModelSO*>());
         // from left hand settings
         if (hand == 0){
-            settings->controllerPosition->set_value(SaberTailorMain::config.leftHandPosition/1000 + UnityEngine::Vector3(-SaberTailorMain::config.leftHandPosition.x/500, 0, 0));
-            settings->controllerRotation->set_value(SaberTailorMain::config.leftHandRotation + UnityEngine::Vector3(0, -SaberTailorMain::config.leftHandPosition.y * 2, 0));
+            settings->controllerPosition->set_value(UnityEngine::Vector3(GET_VALUE(leftHandPosition))/1000 + UnityEngine::Vector3(-GET_VALUE(leftHandPosition).x/500, 0, 0));
+            settings->controllerRotation->set_value(GET_VALUE(leftHandRotation) + UnityEngine::Vector3(0, -GET_VALUE(leftHandPosition).y * 2, 0));
             settings->Save();
             settings->Load(true);
         }
         // from right hand settings 
         if (hand == 1){
-            settings->controllerPosition->set_value(UnityEngine::Vector3(SaberTailorMain::config.rightHandPosition)/1000);
-            settings->controllerRotation->set_value(UnityEngine::Vector3(SaberTailorMain::config.rightHandRotation));
+            settings->controllerPosition->set_value(UnityEngine::Vector3(GET_VALUE(rightHandPosition))/1000);
+            settings->controllerRotation->set_value(UnityEngine::Vector3(GET_VALUE(rightHandRotation)));
             settings->Save();
             settings->Load(true);
         }
@@ -105,12 +105,12 @@ namespace TransferHelper{
         auto lPos = settings->controllerPosition->get_value() * 1000;
         auto lRot = settings->controllerRotation->get_value();
         if (hand == 0){
-            setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftPosition", UnityEngine::Vector3(-lPos.x, lPos.y, lPos.z));
-            setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftRotation", UnityEngine::Vector3(lRot.x, -lRot.y, lRot.z));
+            SET_VALUE(leftHandPosition, UnityEngine::Vector3(-lPos.x, lPos.y, lPos.z));
+            SET_VALUE(leftHandRotation, UnityEngine::Vector3(lRot.x, -lRot.y, lRot.z));
         }
         if (hand == 1){
-            setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripRightPosition", lPos);
-            setVectorObject(SaberTailorMain::config.currentlyLoadedConfig, "GripRightRotation", lRot);
+            SET_VALUE(rightHandPosition, lPos);
+            SET_VALUE(rightHandRotation, lRot);
         }
     }
 }

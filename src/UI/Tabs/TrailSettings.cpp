@@ -20,29 +20,29 @@ namespace SaberTailor::Tabs::Trail{
         text->set_fontSize(6.0f);
         text->set_alignment(TMPro::TextAlignmentOptions::Center);
 
-        enableTrailSettings = CreateToggle(container->get_transform(), "Enable Trail Settings", SaberTailorMain::config.enableTrailSettings, [](bool value){
-            setBool(SaberTailorMain::config.currentlyLoadedConfig, "IsTrailModEnabled", value, false);
+        enableTrailSettings = CreateToggle(container->get_transform(), "Enable Trail Settings", GET_VALUE(isTrailModEnabled), [](bool value){
+            SET_VALUE(isTrailModEnabled, value);
         });
         AddHoverHint(enableTrailSettings->get_gameObject(), "Allow saber tailor to control the saber trail");
 
-        enableSaberTrails = CreateToggle(container->get_transform(), "Enable Saber Trails", SaberTailorMain::config.enableSaberTrails, [](bool value){
-            setBool(SaberTailorMain::config.currentlyLoadedConfig, "IsTrailEnabled", value, false);
+        enableSaberTrails = CreateToggle(container->get_transform(), "Enable Saber Trails", GET_VALUE(isTrailEnabled), [](bool value){
+            SET_VALUE(isTrailEnabled, value);
         });
         AddHoverHint(enableSaberTrails->get_gameObject(), "Toggles the trail on/off");
 
-        duration = CreateIncrementSetting(container->get_transform(), "Trail Duration", 0, 100, SaberTailorMain::config.trailDuration, 100, 5000, [](float value){
-            setInt(SaberTailorMain::config.currentlyLoadedConfig, "TrailDuration", (int)value, false);
+        duration = CreateIncrementSetting(container->get_transform(), "Trail Duration", 0, 100, GET_VALUE(trailDuration), 100, 5000, [](float value){
+            SET_VALUE(trailDuration, (int)value);
             IncrementHelper::SetIncrementText(duration, IncrementHelper::Round(value/1000.0f, 1) + " s");
         });
         AddHoverHint(duration->get_gameObject(), "Controls the length of the trail");
 
-        granularity = CreateIncrementSetting(container->get_transform(), "Trail Granularity", 0, 1, SaberTailorMain::config.trailGranularity, 10, 200, [](float value){
-            setInt(SaberTailorMain::config.currentlyLoadedConfig, "TrailGranularity", (int)value, false);
+        granularity = CreateIncrementSetting(container->get_transform(), "Trail Granularity", 0, 1, GET_VALUE(trailGranularity), 10, 200, [](float value){
+            SET_VALUE(trailGranularity, (int)value);
         });
         AddHoverHint(granularity->get_gameObject(), "Tweak how granular the trail is");
 
-        whitestep = CreateIncrementSetting(container->get_transform(), "Trail Whitestep Duration", 0, 100, SaberTailorMain::config.whitestepDuration, 0, 2000, [](float value){
-            setInt(SaberTailorMain::config.currentlyLoadedConfig, "TrailWhiteSectionDuration", (int)value, false);
+        whitestep = CreateIncrementSetting(container->get_transform(), "Trail Whitestep Duration", 0, 100, GET_VALUE(trailWhiteSectionDuration), 0, 2000, [](float value){
+            SET_VALUE(trailWhiteSectionDuration, (int)value);
             IncrementHelper::SetIncrementText(whitestep, IncrementHelper::Round(value/1000.0f, 1) + " s");
         });
         AddHoverHint(whitestep->get_gameObject(), "Tweak how much of the white section you can see in the saber trail");
@@ -52,8 +52,8 @@ namespace SaberTailor::Tabs::Trail{
         qosmeticsPoo->set_alignment(TMPro::TextAlignmentOptions::Center);
         qosmeticsPoo->set_color(UnityEngine::Color::get_red());
 
-        IncrementHelper::SetIncrementText(duration, IncrementHelper::Round((float)SaberTailorMain::config.trailDuration/1000.0f, 1) + " s");
-        IncrementHelper::SetIncrementText(whitestep, IncrementHelper::Round((float)SaberTailorMain::config.whitestepDuration/1000.0f, 1) + " s");
+        IncrementHelper::SetIncrementText(duration, IncrementHelper::Round((float)GET_VALUE(trailDuration)/1000.0f, 1) + " s");
+        IncrementHelper::SetIncrementText(whitestep, IncrementHelper::Round((float)GET_VALUE(trailWhiteSectionDuration)/1000.0f, 1) + " s");
 
         return TabHelper::AdjustedScrollContainerObject(container, false);
     }

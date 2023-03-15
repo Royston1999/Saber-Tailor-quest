@@ -117,5 +117,6 @@
         "format": "cpp",
         "__memory": "cpp",
         "ranges": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": false
 }

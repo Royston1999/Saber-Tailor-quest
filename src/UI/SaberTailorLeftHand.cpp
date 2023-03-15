@@ -25,18 +25,18 @@ namespace SaberTailor::UI::LeftHand{
     SaberTailor::IncrementSlider* rotY;
     SaberTailor::IncrementSlider* rotZ;
     void UpdateSliderValues(){
-        posX->sliderComponent->set_value(SaberTailorMain::config.leftHandPosition.x);
-        posY->sliderComponent->set_value(SaberTailorMain::config.leftHandPosition.y);
-        posZ->sliderComponent->set_value(SaberTailorMain::config.leftHandPosition.z);
-        rotX->sliderComponent->set_value(SaberTailorMain::config.leftHandRotation.x);
-        rotY->sliderComponent->set_value(SaberTailorMain::config.leftHandRotation.y);
-        rotZ->sliderComponent->set_value(SaberTailorMain::config.leftHandRotation.z);
-        SetSliderPosText(posX, SaberTailorMain::config.leftHandPosition.x);
-        SetSliderPosText(posY, SaberTailorMain::config.leftHandPosition.y);
-        SetSliderPosText(posZ, SaberTailorMain::config.leftHandPosition.z);
-        rotX->sliderComponent->text->set_text(std::to_string((int)SaberTailorMain::config.leftHandRotation.x) + " deg");
-        rotY->sliderComponent->text->set_text(std::to_string((int)SaberTailorMain::config.leftHandRotation.y) + " deg");
-        rotZ->sliderComponent->text->set_text(std::to_string((int)SaberTailorMain::config.leftHandRotation.z) + " deg");
+        posX->sliderComponent->set_value(GET_VALUE(leftHandPosition).x);
+        posY->sliderComponent->set_value(GET_VALUE(leftHandPosition).y);
+        posZ->sliderComponent->set_value(GET_VALUE(leftHandPosition).z);
+        rotX->sliderComponent->set_value(GET_VALUE(leftHandRotation).x);
+        rotY->sliderComponent->set_value(GET_VALUE(leftHandRotation).y);
+        rotZ->sliderComponent->set_value(GET_VALUE(leftHandRotation).z);
+        SetSliderPosText(posX, GET_VALUE(leftHandPosition).x);
+        SetSliderPosText(posY, GET_VALUE(leftHandPosition).y);
+        SetSliderPosText(posZ, GET_VALUE(leftHandPosition).z);
+        rotX->sliderComponent->text->set_text(std::to_string((int)GET_VALUE(leftHandRotation).x) + " deg");
+        rotY->sliderComponent->text->set_text(std::to_string((int)GET_VALUE(leftHandRotation).y) + " deg");
+        rotZ->sliderComponent->text->set_text(std::to_string((int)GET_VALUE(leftHandRotation).z) + " deg");
     }
 }
 
@@ -46,11 +46,11 @@ void SaberTailor::Views::SaberTailorLeftHand::DidActivate(bool firstActivation, 
         UIUtils::AddHeader(get_transform(), "Left Hand Settings", Color(0.941f, 0.188f, 0.188f, 1.0f));
         leftsabercontainer = QuestUI::BeatSaberUI::CreateVerticalLayoutGroup(get_transform());
         SharedCoroutineStarter::get_instance()->StartCoroutine(CoroutineHelper::New(CreateSliders()));
-        SaberTailorMain::config.currentLeftHandPosition = Vector3(SaberTailorMain::config.leftHandPosition);
-        SaberTailorMain::config.currentLeftHandRotation = Vector3(SaberTailorMain::config.leftHandRotation);  
-        return;
     }
-    SharedCoroutineStarter::get_instance()->StartCoroutine(CoroutineHelper::New(forceUpdateSliderText(true)));
+    else SharedCoroutineStarter::get_instance()->StartCoroutine(CoroutineHelper::New(forceUpdateSliderText(true)));
+    GET_VALUE(currentLeftHandPosition) = Vector3(GET_VALUE(leftHandPosition));
+    GET_VALUE(currentLeftHandRotation) = Vector3(GET_VALUE(leftHandRotation));  
+    
 }
 
 custom_types::Helpers::Coroutine SaberTailor::Views::SaberTailorLeftHand::CreateSliders(){
@@ -65,40 +65,40 @@ custom_types::Helpers::Coroutine SaberTailor::Views::SaberTailorLeftHand::Create
     AddHoverHint(mirrorRight->get_gameObject(), "Copies the position and rotation values into the right hand");
     mirrorRight->get_gameObject()->GetComponentInChildren<LayoutElement*>()->set_preferredWidth(44.5f);
     auto* exportButton = CreateUIButton(somebuttons->get_transform(), "Export to Base Game", [](){
-        TransferHelper::exportToBaseGame(1);
+        TransferHelper::exportToBaseGame(0);
     });
     AddHoverHint(exportButton->get_gameObject(), "Takes the current right hand settings and copies them into the base game settings");
     exportButton->get_gameObject()->GetComponentInChildren<LayoutElement*>()->set_preferredWidth(44.5f);
-    posX = SaberTailor::IncrementSlider::CreateIncrementSlider(leftsabercontainer, "Position X", SaberTailorMain::config.saberPosIncrement, SaberTailorMain::config.leftHandPosition.x, -100, 100, [](float value){
-        setVectorObjectValue(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftPosition", "x", std::round(value));
-        SetSliderPosText(posX, SaberTailorMain::config.leftHandPosition.x);
+    posX = SaberTailor::IncrementSlider::CreateIncrementSlider(leftsabercontainer, "Position X", GET_VALUE(saberPosIncrement), GET_VALUE(leftHandPosition).x, -100, 100, [](float value){
+        SET_VALUE(leftHandPosition.x, (int)std::round(value));
+        SetSliderPosText(posX, GET_VALUE(leftHandPosition).x);
     });
     co_yield nullptr;
-    posY = SaberTailor::IncrementSlider::CreateIncrementSlider(leftsabercontainer, "Position Y", SaberTailorMain::config.saberPosIncrement, SaberTailorMain::config.leftHandPosition.y, -100, 100, [](float value){
-        setVectorObjectValue(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftPosition", "y", std::round(value));
-        SetSliderPosText(posY, SaberTailorMain::config.leftHandPosition.y);
+    posY = SaberTailor::IncrementSlider::CreateIncrementSlider(leftsabercontainer, "Position Y", GET_VALUE(saberPosIncrement), GET_VALUE(leftHandPosition).y, -100, 100, [](float value){
+        SET_VALUE(leftHandPosition.y, (int)std::round(value));
+        SetSliderPosText(posY, GET_VALUE(leftHandPosition).y);
     });
     co_yield nullptr;
-    posZ = SaberTailor::IncrementSlider::CreateIncrementSlider(leftsabercontainer, "Position Z", SaberTailorMain::config.saberPosIncrement, SaberTailorMain::config.leftHandPosition.z, -100, 100, [](float value){
-        setVectorObjectValue(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftPosition", "z", std::round(value));
-        SetSliderPosText(posZ, SaberTailorMain::config.leftHandPosition.z);
+    posZ = SaberTailor::IncrementSlider::CreateIncrementSlider(leftsabercontainer, "Position Z", GET_VALUE(saberPosIncrement), GET_VALUE(leftHandPosition).z, -100, 100, [](float value){
+        SET_VALUE(leftHandPosition.z, (int)std::round(value));
+        SetSliderPosText(posZ, GET_VALUE(leftHandPosition).z);
     });
     co_yield nullptr;
-    rotX = SaberTailor::IncrementSlider::CreateIncrementSlider(leftsabercontainer, "Rotation X", SaberTailorMain::config.saberRotIncrement, SaberTailorMain::config.leftHandRotation.x, -180, 180, [](float value){
+    rotX = SaberTailor::IncrementSlider::CreateIncrementSlider(leftsabercontainer, "Rotation X", GET_VALUE(saberRotIncrement), GET_VALUE(leftHandRotation).x, -180, 180, [](float value){
         int x = std::round(value);
-        setVectorObjectValue(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftRotation", "x", std::round(value));
+        SET_VALUE(leftHandRotation.x, (int)std::round(value));
         rotX->sliderComponent->text->set_text(std::to_string(x) + " deg");
     });
     co_yield nullptr;
-    rotY = SaberTailor::IncrementSlider::CreateIncrementSlider(leftsabercontainer, "Rotation Y", SaberTailorMain::config.saberRotIncrement, SaberTailorMain::config.leftHandRotation.y, -180, 180, [](float value){
+    rotY = SaberTailor::IncrementSlider::CreateIncrementSlider(leftsabercontainer, "Rotation Y", GET_VALUE(saberRotIncrement), GET_VALUE(leftHandRotation).y, -180, 180, [](float value){
         int x = std::round(value);
-        setVectorObjectValue(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftRotation", "y", std::round(value));
+        SET_VALUE(leftHandRotation.y, (int)std::round(value));
         rotY->sliderComponent->text->set_text(std::to_string(x) + " deg");
     });
     co_yield nullptr;
-    rotZ = SaberTailor::IncrementSlider::CreateIncrementSlider(leftsabercontainer, "Rotation Z", SaberTailorMain::config.saberRotIncrement, SaberTailorMain::config.leftHandRotation.z, -180, 180, [](float value){
+    rotZ = SaberTailor::IncrementSlider::CreateIncrementSlider(leftsabercontainer, "Rotation Z", GET_VALUE(saberRotIncrement), GET_VALUE(leftHandRotation).z, -180, 180, [](float value){
         int x = std::round(value);
-        setVectorObjectValue(SaberTailorMain::config.currentlyLoadedConfig, "GripLeftRotation", "z", std::round(value));
+        SET_VALUE(leftHandRotation.z, (int)std::round(value));
         rotZ->sliderComponent->text->set_text(std::to_string(x) + " deg");
     });
     co_yield nullptr;

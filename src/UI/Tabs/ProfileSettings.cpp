@@ -27,43 +27,43 @@ void MirrorConfigValuesToUI(){
     using namespace SaberTailor::Tabs::Scale;
     using namespace SaberTailor::Tabs::Trail;
     using namespace SaberTailor::Tabs::CSH;
-    enableSaberTailor->set_isOn(SaberTailorMain::config.isEnabled);
+    enableSaberTailor->set_isOn(GET_VALUE(isGripModEnabled));
     // enableBaseGameAdjustment->set_isOn(true);
-    saberPosIncrement->CurrentValue = SaberTailorMain::config.saberPosIncMultiplier;
-    saberRotIncrement->CurrentValue = SaberTailorMain::config.saberRotIncrement;
-    incrementUnits->SelectCellWithIdx(SaberTailorMain::config.saberPosIncUnit == "cm" ? 0 : 1);
-    std::string s = SaberTailorMain::config.saberPosDisplayValue;
+    saberPosIncrement->CurrentValue = GET_VALUE(saberPosIncValue);
+    saberRotIncrement->CurrentValue = GET_VALUE(saberRotIncrement);
+    incrementUnits->SelectCellWithIdx(GET_VALUE(saberPosIncUnit == "cm" ? 0 : 1));
+    std::string s = GET_VALUE(saberPosDisplayUnit);
     displayUnits->SelectCellWithIdx(s == "cm" ? 0 : s == "inches" ? 1 : s == "miles" ? 2 : 3);
-    IncrementHelper::SetIncrementText(saberPosIncrement, std::to_string(SaberTailorMain::config.saberPosIncMultiplier) + " " + SaberTailorMain::config.saberPosIncUnit);
-    IncrementHelper::SetIncrementText(saberRotIncrement, std::to_string(SaberTailorMain::config.saberRotIncrement) + " deg");
+    IncrementHelper::SetIncrementText(saberPosIncrement, std::to_string(GET_VALUE(saberPosIncValue)) + " " + GET_VALUE(saberPosIncUnit));
+    IncrementHelper::SetIncrementText(saberRotIncrement, std::to_string(GET_VALUE(saberRotIncrement)) + " deg");
 
-    enableSettingsOverride->set_isOn(SaberTailorMain::config.overrideSettingsMethod);
-    enableAxisArrows->set_isOn(SaberTailorMain::config.spawnAxisDisplay);
-    mirrorZRot->set_isOn(SaberTailorMain::config.mirrorZRot);
-    axisInReplay->set_isOn(SaberTailorMain::config.axisInReplay);
+    enableSettingsOverride->set_isOn(GET_VALUE(overrideSettingsMethod));
+    enableAxisArrows->set_isOn(GET_VALUE(axisEnabled));
+    mirrorZRot->set_isOn(GET_VALUE(mirrorZRot));
+    axisInReplay->set_isOn(GET_VALUE(axisInReplay));
 
-    enableScaleSettings->set_isOn(SaberTailorMain::config.enableScaleSettings);
-    scaleHitbox->set_isOn(SaberTailorMain::config.scaleHitbox);
-    length->CurrentValue = SaberTailorMain::config.saberLength;
-    width->CurrentValue = SaberTailorMain::config.saberGirth;
-    IncrementHelper::SetIncrementText(width, std::to_string(SaberTailorMain::config.saberGirth) + "%");
-    IncrementHelper::SetIncrementText(length, std::to_string(SaberTailorMain::config.saberLength) + "%");
+    enableScaleSettings->set_isOn(GET_VALUE(isSaberScaleModEnabled));
+    scaleHitbox->set_isOn(GET_VALUE(saberScaleHitbox));
+    length->CurrentValue = GET_VALUE(saberLength);
+    width->CurrentValue = GET_VALUE(saberGirth);
+    IncrementHelper::SetIncrementText(width, std::to_string(GET_VALUE(saberGirth)) + "%");
+    IncrementHelper::SetIncrementText(length, std::to_string(GET_VALUE(saberLength)) + "%");
 
-    enableTrailSettings->set_isOn(SaberTailorMain::config.enableTrailSettings);
-    enableSaberTrails->set_isOn(SaberTailorMain::config.enableSaberTrails);
-    duration->CurrentValue = SaberTailorMain::config.trailDuration;
-    whitestep->CurrentValue = SaberTailorMain::config.whitestepDuration;
-    granularity->CurrentValue = SaberTailorMain::config.trailGranularity;
-    IncrementHelper::SetIncrementText(duration, IncrementHelper::Round((float)SaberTailorMain::config.trailDuration/1000.0f, 1) + " s");
-    IncrementHelper::SetIncrementText(whitestep, IncrementHelper::Round((float)SaberTailorMain::config.whitestepDuration/1000.0f, 1) + " s");
+    enableTrailSettings->set_isOn(GET_VALUE(isTrailModEnabled));
+    enableSaberTrails->set_isOn(GET_VALUE(isTrailEnabled));
+    duration->CurrentValue = GET_VALUE(trailDuration);
+    whitestep->CurrentValue = GET_VALUE(trailWhiteSectionDuration);
+    granularity->CurrentValue = GET_VALUE(trailGranularity);
+    IncrementHelper::SetIncrementText(duration, IncrementHelper::Round((float)GET_VALUE(trailDuration)/1000.0f, 1) + " s");
+    IncrementHelper::SetIncrementText(whitestep, IncrementHelper::Round((float)GET_VALUE(trailWhiteSectionDuration)/1000.0f, 1) + " s");
     SaberTailor::UI::RightHand::UpdateSliderValues();
     SaberTailor::UI::LeftHand::UpdateSliderValues();
-    updatePosIncrements(SaberTailorMain::config.saberPosIncrement);
-    updateRotIncrements(SaberTailorMain::config.saberRotIncrement);
-    SaberTailorMain::config.currentRightHandPosition = Vector3(SaberTailorMain::config.rightHandPosition);
-    SaberTailorMain::config.currentRightHandRotation = Vector3(SaberTailorMain::config.rightHandRotation);
-    SaberTailorMain::config.currentLeftHandPosition = Vector3(SaberTailorMain::config.leftHandPosition);
-    SaberTailorMain::config.currentLeftHandRotation = Vector3(SaberTailorMain::config.leftHandRotation);
+    updatePosIncrements(GET_VALUE(saberPosIncrement));
+    updateRotIncrements(GET_VALUE(saberRotIncrement));
+    GET_VALUE(currentRightHandPosition) = Vector3(GET_VALUE(rightHandPosition));
+    GET_VALUE(currentRightHandRotation) = Vector3(GET_VALUE(rightHandRotation));
+    GET_VALUE(currentLeftHandPosition) = Vector3(GET_VALUE(leftHandPosition));
+    GET_VALUE(currentLeftHandRotation) = Vector3(GET_VALUE(leftHandRotation));
 }
 
 IReadOnlyList<StringW>* CreateConfigNameList(std::vector<StringW>* names){
@@ -80,8 +80,8 @@ namespace SaberTailor::Tabs::Profile{
         text->set_fontSize(6.0f);
         text->set_alignment(TMPro::TextAlignmentOptions::Center);
 
-        currentConfigName = SaberTailorMain::config.currentConfigName;
-        configToCopyFrom = SaberTailorMain::config.currentConfigName;
+        currentConfigName = getMainConfig().currentConfig.GetValue();
+        configToCopyFrom = getMainConfig().currentConfig.GetValue();
         configNames = ConfigHelper::GetExistingConfigs();
 
         auto* createModal = CreateModal(container->get_transform(), UnityEngine::Vector2(60, 40), [](HMUI::ModalView *modal) {}, true);
@@ -108,7 +108,7 @@ namespace SaberTailor::Tabs::Profile{
             createModalDropdown->get_transform()->get_parent()->GetComponentInChildren<TMPro::TextMeshProUGUI*>()->set_alpha((int)value);
         });
 
-        createModalDropdown = CreateDropdown(createVert->get_transform(), "Select Profile", SaberTailorMain::config.currentConfigName, configNames, [](StringW thing){
+        createModalDropdown = CreateDropdown(createVert->get_transform(), "Select Profile", getMainConfig().currentConfig.GetValue(), configNames, [](StringW thing){
             configToCopyFrom = static_cast<std::string>(thing);
         });
 
@@ -121,7 +121,7 @@ namespace SaberTailor::Tabs::Profile{
             MirrorConfigValuesToUI();
         };
 
-        auto* profileSelector = CreateDropdown(container->get_transform(), "Select Profile", SaberTailorMain::config.currentConfigName, configNames, dropdownAction);
+        auto* profileSelector = CreateDropdown(container->get_transform(), "Select Profile", getMainConfig().currentConfig.GetValue(), configNames, dropdownAction);
 
         auto* confirmDeleteButton = CreateUIButton(deleteHoriz->get_transform(), "Yes", [deleteModal, profileSelector, dropdownAction](){
             ConfigHelper::DeleteFile(currentConfigName);

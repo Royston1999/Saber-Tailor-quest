@@ -80,7 +80,7 @@ namespace ControllerSettingsHelper{
             for(auto& text : arrowTexts) text->get_transform()->set_rotation(Quaternion::get_identity());
         }
         else if (parent == nullptr || parent->m_CachedPtr.m_value == nullptr) OnDispose();
-        if(!SaberTailorMain::config.spawnAxisDisplay && notReplay) OnDispose();
+        if(!GET_VALUE(axisEnabled) && notReplay) OnDispose();
     }
 
     void AxisDisplay::OnDispose(){
