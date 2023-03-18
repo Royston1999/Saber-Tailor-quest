@@ -36,7 +36,7 @@ bool ConfigHelper::LoadConfig(SaberTailorConfig& con, ConfigDocument& config) {
     if (config.HasMember("isEnabled")) ConfigHelper::ConvertOldConfig();
     else {
         if (ThisStupidFuckingQuestChildTriedToDeleteTheDefaultConfig()) CreateBlankConfig("Default");
-        LoadConfigFile("Default");
+        LoadConfigFile(getMainConfig().currentConfig.GetValue());
     }
     return true;
 }
