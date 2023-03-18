@@ -39,8 +39,8 @@ DECLARE_JSON_CLASS(SaberTailorProfileConfig,
     NAMED_VALUE_DEFAULT(int, trailWhiteSectionDuration, 100, "TrailWhiteSectionDuration");
     NAMED_VALUE_DEFAULT(bool, isGripModEnabled, false, "IsGripModEnabled");
     NAMED_VALUE_DEFAULT(Vector3, leftHandPosition, Vector3(), "GripLeftPosition");
-    NAMED_VALUE_DEFAULT(Vector3, leftHandRotation, Vector3(), "GripRightPosition");
-    NAMED_VALUE_DEFAULT(Vector3, rightHandPosition, Vector3(), "GripLeftRotation");
+    NAMED_VALUE_DEFAULT(Vector3, rightHandPosition, Vector3(), "GripRightPosition");
+    NAMED_VALUE_DEFAULT(Vector3, leftHandRotation, Vector3(), "GripLeftRotation");
     NAMED_VALUE_DEFAULT(Vector3, rightHandRotation, Vector3(), "GripRightRotation");
     NAMED_VALUE_DEFAULT(Vector3, gripLeftOffset, Vector3(), "GripLeftOffset");
     NAMED_VALUE_DEFAULT(Vector3, gripRightOffset, Vector3(), "GripRightOffset");
