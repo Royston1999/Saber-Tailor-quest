@@ -60,10 +60,11 @@ namespace SaberTailor::Tabs::MainSettings{
         // enableBaseGameAdjustment->set_enabled(false);
         // AddHoverHint(enableBaseGameAdjustment->get_gameObject(), "No Male, this toggle does not work. It does nothing. It's purely there to pretend like I am making a full port of the PC version of Saber Tailor. Thank you for your understanding");
 
-        incrementUnits = CreateDropdown(container->get_transform(), "Position Increment Units", SaberTailorMain::config.currentConfig.saberPosIncUnit, {"cm", "mm"}, [](StringW inc){
+        incrementUnits = CreateDropdown(container->get_transform(), "Position Increment Units", GET_VALUE(saberPosIncUnit), {"cm", "mm"}, [](StringW inc){
             std::string unit = static_cast<std::string>(inc);
             SET_VALUE(saberPosIncUnit, unit);
             SET_VALUE(saberPosIncrement, GET_VALUE(saberPosIncValue) * (GET_VALUE(saberPosIncUnit) == "cm" ? 10 : 1));
+            IncrementHelper::SetIncrementText(saberPosIncrement, std::to_string(GET_VALUE(saberPosIncValue)) + " " + GET_VALUE(saberPosIncUnit));
             updatePosIncrements(SaberTailorMain::config.currentConfig.saberPosIncrement);
         });
         AddHoverHint(incrementUnits->get_gameObject(), "Changes whether a single buttom press increments the position values in millimetres or centimetres");
