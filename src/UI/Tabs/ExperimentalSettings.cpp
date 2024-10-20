@@ -3,10 +3,9 @@
 #include "main.hpp"
 #include "UnityEngine/WaitForSeconds.hpp"
 #include "GlobalNamespace/VRController.hpp"
-#include "GlobalNamespace/SharedCoroutineStarter.hpp"
 #include "UnityEngine/TextAnchor.hpp"
 
-using namespace QuestUI::BeatSaberUI;
+using namespace BSML::Lite;
 using namespace UnityEngine;
 
 TMPro::TextMeshProUGUI* countdownText;
@@ -24,7 +23,7 @@ void fixAngles(Vector3& vector){
 
 void adjustControllerSettings(){
     auto controllers = UnityEngine::Resources::FindObjectsOfTypeAll<GlobalNamespace::VRController*>();
-    auto* dummyTransform = GameObject::New_ctor()->get_transform();
+    auto* dummyTransform = GameObject::New_ctor()->get_transform().ptr();
     for (auto& controller : controllers){
         if (controller->get_node() == XR::XRNode::LeftHand){
             auto x = controller->get_transform()->InverseTransformDirection(Quaternion::get_identity().get_eulerAngles());
@@ -38,7 +37,7 @@ void adjustControllerSettings(){
             // fixAngles(rot);
             auto toRotate = Vector3::get_zero(); 
             for (int i=0; i<100; i++){
-                controller->get_transform()->Rotate(-toRotate);
+                // controller->get_transform()->Rotate(-toRotate); // not gonna fix
                 toRotate = Vector3(rot.y == 0 ? -rot.x : 0, -rot.y, rot.x == 0 ? -rot.z : 0);
                 // getLogger().info("pre rot: %.2f, %.2f, %.2f", rot.x, rot.y, rot.z);
                 controller->get_transform()->Rotate(toRotate);
@@ -60,11 +59,11 @@ custom_types::Helpers::Coroutine CountdownRoutine(){
     startButton->set_interactable(false);
     countdownText->set_alpha(1.0f);
     for (int i=5; i>0; i--){
-        countdownText->SetText(std::to_string(i));
+        countdownText->set_text(std::to_string(i));
         co_yield reinterpret_cast<System::Collections::IEnumerator*>(UnityEngine::WaitForSeconds::New_ctor(1.0f));
-        if (!rotatorModal->isShown) co_return;
+        if (!rotatorModal->____isShown) co_return;
     }
-    if (!rotatorModal->isShown) co_return;
+    if (!rotatorModal->____isShown) co_return;
     SET_VALUE(rightHandRotation, UnityEngine::Vector3::get_zero());
     co_yield nullptr;
     adjustControllerSettings();
@@ -77,14 +76,14 @@ namespace SaberTailor::Tabs::Experimental{
     GameObject* CreateExperimentalSettings(Transform* parent){
         auto* container = CreateScrollableSettingsContainer(parent);
 
-        auto* text = CreateText(container->get_transform(), "Experimental");
+        auto* text = CreateText(container->get_transform(), "Experimental", {0, 0}, {0, 7});
         text->set_fontSize(6.0f);
         text->set_alignment(TMPro::TextAlignmentOptions::Center);
         std::function<void()> onClose = [](){
             countdownText->set_alpha(0.0f);
             startButton->set_interactable(true);
         };
-        rotatorModal = CreateModal(container->get_transform(), UnityEngine::Vector2(90, 60), [onClose](HMUI::ModalView *modal) {onClose();}, true);
+        rotatorModal = CreateModal(container->get_transform(), UnityEngine::Vector2(90, 60), [onClose]() {onClose();}, true);
         auto* rotatorVert = CreateVerticalLayoutGroup(rotatorModal->get_transform());
         rotatorVert->get_gameObject()->GetComponentInChildren<UnityEngine::UI::LayoutElement*>()->set_preferredWidth(82.0f);
         rotatorVert->set_childControlWidth(true); rotatorVert->set_childForceExpandWidth(false); rotatorVert->set_childForceExpandHeight(true);
@@ -99,7 +98,7 @@ namespace SaberTailor::Tabs::Experimental{
         countdownText->set_alpha(0.0f);
         countdownText->set_alignment(TMPro::TextAlignmentOptions::Center);
         startButton = CreateUIButton(rotatorVert->get_transform(), "Start", "PracticeButton", Vector2::get_zero(), {25, 7}, [](){
-            GlobalNamespace::SharedCoroutineStarter::get_instance()->StartCoroutine(custom_types::Helpers::CoroutineHelper::New(CountdownRoutine()));
+            rotatorModal->StartCoroutine(custom_types::Helpers::CoroutineHelper::New(CountdownRoutine()));
         });
         auto* element = startButton->get_gameObject()->GetComponentInChildren<UnityEngine::UI::LayoutElement*>();
         element->set_preferredWidth(35.0f);

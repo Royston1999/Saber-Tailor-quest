@@ -1,32 +1,26 @@
 #include "UI/SettingsFlowCoordinator.hpp"
-#include "GlobalNamespace/MenuTransitionsHelper.hpp"
-#include "HMUI/ViewController_AnimationDirection.hpp"
-#include "HMUI/ViewController_AnimationType.hpp"
 #include "UI/SaberTailorLeftHand.hpp"
 #include "UI/SaberTailorRightHand.hpp"
-#include "SaberTailorHelper.hpp"
+#include "bsml/shared/Helpers/creation.hpp"
 
 DEFINE_TYPE(SaberTailor, SettingsFlowCoordinator);
 
 void SaberTailor::SettingsFlowCoordinator::DidActivate(bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling){
-    using namespace HMUI;
     
-    if (firstActivation) {
-        SetTitle(ID, ViewController::AnimationType::Out);
-    }
-    if (SaberTailorMain::saberTailorMainSettingsPage == nullptr) SaberTailorMain::saberTailorMainSettingsPage = QuestUI::BeatSaberUI::CreateViewController<SaberTailor::Views::SettingsViewController*>();
-    if (SaberTailorMain::saberTailorLeftHand == nullptr) SaberTailorMain::saberTailorLeftHand = QuestUI::BeatSaberUI::CreateViewController<SaberTailor::Views::SaberTailorLeftHand*>();
-    if (SaberTailorMain::saberTailorRightHand == nullptr) SaberTailorMain::saberTailorRightHand = QuestUI::BeatSaberUI::CreateViewController<SaberTailor::Views::SaberTailorRightHand*>();
-    settingsViewController = SaberTailorMain::saberTailorMainSettingsPage;
-    leftHand = SaberTailorMain::saberTailorLeftHand;
-    rightHand = SaberTailorMain::saberTailorRightHand;
+    if (!firstActivation) return;
     
-    showBackButton = true;
+    SetTitle("Saber Tailor", HMUI::ViewController::AnimationType::Out);
+    
+    auto main = BSML::Helpers::CreateViewController<SaberTailor::Views::SettingsViewController*>();
+    auto leftHand = BSML::Helpers::CreateViewController<SaberTailor::Views::SaberTailorLeftHand*>();
+    auto rightHand = BSML::Helpers::CreateViewController<SaberTailor::Views::SaberTailorRightHand*>();
 
-    ProvideInitialViewControllers(settingsViewController, leftHand, rightHand, nullptr, nullptr);
+    ____showBackButton = true;
+
+    ProvideInitialViewControllers(main, leftHand, rightHand, nullptr, nullptr);
 }
 
 void SaberTailor::SettingsFlowCoordinator::BackButtonWasPressed(HMUI::ViewController* topViewController){
-    parentFlowCoordinator->DismissFlowCoordinator(this, HMUI::ViewController::AnimationDirection::Horizontal, nullptr, false);
+    ____parentFlowCoordinator->DismissFlowCoordinator(this, HMUI::ViewController::AnimationDirection::Horizontal, nullptr, false);
     
 }

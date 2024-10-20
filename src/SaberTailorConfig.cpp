@@ -13,20 +13,24 @@ void ConfigHelper::CreateBlankConfig(std::string name){
     ReadFromFile(filePath, SaberTailorMain::config.currentConfig);
 }
 
-bool ThisStupidFuckingQuestChildTriedToDeleteTheDefaultConfig(){
-    std::vector<StringW> configs = ConfigHelper::GetExistingConfigs();
-    for (auto& name : configs) if (name == "Default") return false;
-    return true;
+std::string ConfigHelper::GetDefaultConfigName() {
+    std::vector<std::string> configs = ConfigHelper::GetExistingConfigs();
+    for (auto& name : configs) if (toLower(name) == "default") return name;
+    return "";
 }
 
-std::string toLower(std::string s){
+bool ThisStupidFuckingQuestChildTriedToDeleteTheDefaultConfig(){
+    return !ConfigHelper::HasConfigWithName("Default");
+}
+
+std::string ConfigHelper::toLower(std::string s){
     for (char& c : s) c = std::tolower(c);
     return s;
 }
 
 bool ConfigHelper::HasConfigWithName(std::string configName){
-    std::vector<StringW> configs = ConfigHelper::GetExistingConfigs();
-    for (auto& name : configs) if (toLower(static_cast<std::string>(name)) == toLower(configName)) return true;
+    std::vector<std::string> configs = ConfigHelper::GetExistingConfigs();
+    for (auto& name : configs) if (toLower(name) == toLower(configName)) return true;
     return false;
 }
 
@@ -61,30 +65,29 @@ void ConfigHelper::LoadConfigFile(std::string fileName){
 
     try {
         ReadFromFile(file, SaberTailorMain::config.currentConfig);
+        CheckAndUpdateOldConfigVersion(file, SaberTailorMain::config.currentConfig);
     } catch(const std::exception& err) {
         return LoadConfigFile("Default");
     }
 }
 
-std::vector<StringW> ConfigHelper::GetExistingConfigs(){
-    std::vector<StringW> directories;
+std::vector<std::string> ConfigHelper::GetExistingConfigs(){
+    std::vector<std::string> directories;
     std::string directoryPath = getDataDir(modInfo);
     if(!std::filesystem::is_directory(directoryPath)) return directories;
     std::error_code ec;
     auto directory_iterator = std::filesystem::directory_iterator(directoryPath, std::filesystem::directory_options::none, ec);
-    if (ec) getLogger().info("uh oh");
     for (auto const& entry : directory_iterator) {
-        if(entry.is_regular_file()){
-            std::string filePath = entry.path().string();
-            std::string base_filename = filePath.substr(filePath.find_last_of("/\\") + 1);
-            std::string::size_type const p(base_filename.find_last_of('.'));
-            std::string file_extension = base_filename.substr(p, base_filename.length());
-            std::string file_without_extension = base_filename.substr(0, p);
-            getLogger().info("%s", file_extension.c_str());
-            if (file_extension == ".json")
-                directories.push_back(file_without_extension);
-        }
+        if(!entry.is_regular_file()) continue;
+        std::string file_extension = entry.path().extension().string();
+        std::string raw_file_name = entry.path().filename().replace_extension().string();
+        if (file_extension == ".json") directories.push_back(raw_file_name);
     }
+    std::sort(directories.begin(), directories.end(), [](std::string& a, std::string& b) {
+        if (toLower(a) == "default") return true;
+        if (toLower(b) == "default") return false;
+        return a < b;
+    });
     return directories;
 }
 
@@ -131,6 +134,21 @@ void ConfigHelper::CreateNewConfigFile(std::string fileName, std::string configT
     }
 }
 
+DECLARE_JSON_CLASS(LegacyConfig,
+    NAMED_VALUE_OPTIONAL(bool, overrideSettingsMethod, "overrideSettingsMethod");
+)
+
+void ConfigHelper::CheckAndUpdateOldConfigVersion(std::string file, SaberTailor::SaberTailorProfileConfig& config) {
+    if (config.configVersion == 6) return;
+    config.configVersion = 6;
+    LegacyConfig legacy = ReadFromFile<LegacyConfig>(file);
+    if (legacy.overrideSettingsMethod.has_value()) { 
+        config.offsetApplicationMethod = legacy.overrideSettingsMethod.value() ? SaberTailor::ApplicationMethod::ElectroMethod : SaberTailor::ApplicationMethod::Default;
+    }
+    writefile(file, CreateJSONString(config));
+    ReadFromFile(file, SaberTailorMain::config.currentConfig);
+}
+
 template<class T>
 std::optional<T> GetValue(rapidjson::GenericObject<false, rapidjson::Value>& object, std::string name){
     auto itr = object.FindMember(name);
@@ -164,7 +182,7 @@ void ConfigHelper::ConvertOldConfig(){
     convertedConfig.rightHandRotation = Vector3(rightRotX, rightRotY, rightRotZ);
 
     convertedConfig.axisEnabled = GetValue<bool>(oldConfig, "axisEnabled").value_or(false);
-    convertedConfig.overrideSettingsMethod = GetValue<bool>(oldConfig, "overrideSettingsMethod").value_or(false);
+    convertedConfig.offsetApplicationMethod = GetValue<bool>(oldConfig, "overrideSettingsMethod").value_or(false) ? SaberTailor::ApplicationMethod::ElectroMethod : SaberTailor::ApplicationMethod::Default;
     convertedConfig.mirrorZRot = GetValue<bool>(oldConfig, "mirrorZRot").value_or(false);
     convertedConfig.isGripModEnabled = GetValue<bool>(oldConfig, "isEnabled").value_or(false);
 

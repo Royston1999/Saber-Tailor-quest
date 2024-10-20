@@ -1,27 +1,22 @@
 #pragma once
 
-#include "questui/shared/QuestUI.hpp"
-#include "questui/shared/BeatSaberUI.hpp"
-#include "GlobalNamespace/MainSettingsModelSO.hpp"
+#include "bsml/shared/BSML-Lite.hpp"
 #include "UnityEngine/Resources.hpp"
-#include "questui/shared/ArrayUtil.hpp"
-#include "GlobalNamespace/Vector3SO.hpp"
 #include "UnityEngine/Vector3.hpp"
 #include "custom-types/shared/coroutine.hpp"
-#include "IncrementSlider.hpp"
+#include "UI/SaberTailorLeftHand.hpp"
+#include "UI/SaberTailorRightHand.hpp"
 #include "UnityEngine/WaitForFixedUpdate.hpp"
 #include <sstream>
 #include <iomanip>
-#include "questui/shared/CustomTypes/Components/ExternalComponents.hpp"
+#include "bsml/shared/BSML/Components/ExternalComponents.hpp"
 #include "main.hpp"
 
 namespace IncrementHelper{
     std::string Round(float val, int precision);
-    float fixDumbNumberThing(float num);
-    custom_types::Helpers::Coroutine forceUpdateSliderText(bool isLeftHand);
-    void SetIncrementText(QuestUI::IncrementSetting* setting, std::string text);
+    void SetIncrementText(BSML::IncrementSetting* setting, std::string text);
     float getPosIncrement();
-    void SetSliderPosText(SaberTailor::IncrementSlider* slider, float value);
+    std::string formatSliderPosText(float value);
 }
 namespace PosRotHelper{
     void revertLeftHand(bool toZero);

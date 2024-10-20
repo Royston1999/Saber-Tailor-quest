@@ -13,6 +13,8 @@ DECLARE_CONFIG(MainConfig,
 
 namespace SaberTailor {
 
+static inline bool operator==(const UnityEngine::Vector3& one, const UnityEngine::Vector3& two) { return UnityEngine::Vector3::op_Equality(one, two); }
+
 DECLARE_JSON_CLASS(Vector3,
     NAMED_VALUE_DEFAULT(int, x, 0, "x");
     NAMED_VALUE_DEFAULT(int, y, 0, "y");
@@ -25,9 +27,15 @@ DECLARE_JSON_CLASS(Vector3,
     Vector3(int x1, int y1, int z1) : x(x1), y(y1), z(z1) {}
 )
 
+enum class ApplicationMethod {
+    Default,
+    PreUnityUpdate,
+    ElectroMethod
+};
+
 DECLARE_JSON_CLASS(SaberTailorProfileConfig,
 
-    NAMED_VALUE_DEFAULT(int, configVersion, 5, "ConfigVersion");
+    NAMED_VALUE_DEFAULT(int, configVersion, 6, "ConfigVersion");
     NAMED_VALUE_DEFAULT(bool, isSaberScaleModEnabled, false, "IsSaberScaleModEnabled");
     NAMED_VALUE_DEFAULT(bool, saberScaleHitbox, false, "SaberScaleHitbox");
     NAMED_VALUE_DEFAULT(int, saberLength, 100, "SaberLength");
@@ -52,11 +60,21 @@ DECLARE_JSON_CLASS(SaberTailorProfileConfig,
     NAMED_VALUE_DEFAULT(std::string, saberPosIncUnit, "mm", "SaberPosIncUnit");
     NAMED_VALUE_DEFAULT(std::string, saberPosDisplayUnit, "cm", "SaberPosDisplayUnit");
     NAMED_VALUE_DEFAULT(bool, axisEnabled, false, "axisEnabled");
-    NAMED_VALUE_DEFAULT(bool, overrideSettingsMethod, false, "overrideSettingsMethod");
+    private:
+    SERIALIZE_ACTION(ApplicationMethodSerialise,
+        const_cast<SelfType*>(self)->offsetApplicationMethodInternal = (int)self->offsetApplicationMethod;
+    );
+    NAMED_VALUE_DEFAULT(int, offsetApplicationMethodInternal, 0, "offsetApplicationMethod");
+    DESERIALIZE_ACTION(ApplicationMethodDeserialise,
+        if(self->offsetApplicationMethodInternal > 2 || self->offsetApplicationMethodInternal < 0) self->offsetApplicationMethod = ApplicationMethod::Default;
+        else self->offsetApplicationMethod = (ApplicationMethod)self->offsetApplicationMethodInternal;
+    );
+    public:
     NAMED_VALUE_DEFAULT(bool, mirrorZRot, false, "mirrorZRot");
     NAMED_VALUE_DEFAULT(bool, axisInReplay, false, "axisInReplay");
     
-    public:
+    public: 
+        ApplicationMethod offsetApplicationMethod;
         UnityEngine::Vector3 currentLeftHandPosition;
         UnityEngine::Vector3 currentLeftHandRotation;
         UnityEngine::Vector3 currentRightHandPosition;
@@ -80,13 +98,16 @@ class ConfigHelper {
 public:
     static bool LoadConfig(SaberTailorConfig& con, ConfigDocument& config);
     static void LoadConfigFile(std::string fileName);
-    static std::vector<StringW> GetExistingConfigs();
+    static std::vector<std::string> GetExistingConfigs();
     static void WriteToConfigFile(std::string file, bool reloadConfig = true);
     static void DeleteFile(std::string fileName);
     static void CreateNewConfigFile(std::string fileName, std::string configToCopyFrom);
     static void ConvertOldConfig();
+    static void CheckAndUpdateOldConfigVersion(std::string file, SaberTailor::SaberTailorProfileConfig& config);
     static bool HasConfigWithName(std::string configName);
     static void CreateBlankConfig(std::string name);
+    static std::string toLower(std::string s);
+    static std::string GetDefaultConfigName();
 private:
     template<JSONClassDerived T>
     static std::string CreateJSONString(const T& toSerialize);

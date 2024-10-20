@@ -1,29 +1,26 @@
 {
+  "version": "0.1.0",
   "sharedDir": "shared",
   "dependenciesDir": "extern",
   "info": {
     "name": "Saber Tailor",
     "id": "sabertailor",
-    "version": "2.0.1",
+    "version": "2.1.1",
     "url": null,
     "additionalData": {
       "overrideSoName": "libsabertailor.so"
     }
   },
+  "workspace": {
+    "scripts": {},
+    "qmodIncludeDirs": [],
+    "qmodIncludeFiles": [],
+    "qmodOutput": null
+  },
   "dependencies": [
     {
-      "id": "codegen",
-      "versionRange": "^0.33.0",
-      "additionalData": {}
-    },
-    {
-      "id": "custom-types",
-      "versionRange": "^0.15.23",
-      "additionalData": {}
-    },
-    {
       "id": "beatsaber-hook",
-      "versionRange": "^3.14.0",
+      "versionRange": "^5.1.9",
       "additionalData": {
         "extraFiles": [
           "src/inline-hook"
@@ -31,35 +28,51 @@
       }
     },
     {
-      "id": "questui",
-      "versionRange": "^0.17.11",
+      "id": "scotland2",
+      "versionRange": "^0.1.4",
+      "additionalData": {
+        "includeQmod": false
+      }
+    },
+    {
+      "id": "bs-cordl",
+      "versionRange": "3700.*",
       "additionalData": {}
     },
     {
-      "id": "modloader",
-      "versionRange": "^1.2.3",
-      "additionalData": {}
-    },
-    {
-      "id": "bs-utils",
-      "versionRange": "^0.7.2",
-      "additionalData": {}
-    },
-    {
-      "id": "conditional-dependencies",
-      "versionRange": "^0.1.0",
+      "id": "custom-types",
+      "versionRange": "^0.17.0",
       "additionalData": {}
     },
     {
       "id": "config-utils",
-      "versionRange": "^1.0.2",
+      "versionRange": "^1.4.2",
+      "additionalData": {}
+    },
+    {
+      "id": "bsml",
+      "versionRange": "^0.4.24",
+      "additionalData": {}
+    },
+    {
+      "id": "conditional-dependencies",
+      "versionRange": "^0.3.0",
+      "additionalData": {}
+    },
+    {
+      "id": "paper",
+      "versionRange": "^3.6.3",
       "additionalData": {}
     },
     {
       "id": "rapidjson-macros",
-      "versionRange": "^0.4.6",
+      "versionRange": "^1.2.1",
+      "additionalData": {}
+    },
+    {
+      "id": "bs-utils",
+      "versionRange": "^0.8.2",
       "additionalData": {}
     }
-  ],
-  "additionalData": {}
+  ]
 }

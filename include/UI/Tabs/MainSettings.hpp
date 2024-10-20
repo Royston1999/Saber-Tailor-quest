@@ -1,18 +1,18 @@
 #pragma once
 
-#include "questui/shared/BeatSaberUI.hpp"
+#include "bsml/shared/BSML-Lite.hpp"
 
 namespace SaberTailor::Tabs::MainSettings{
     UnityEngine::GameObject* CreateMainSettings(UnityEngine::Transform* parent);
 }
 
 namespace SaberTailor::Tabs::MainSettings{
-    extern QuestUI::IncrementSetting* saberPosIncrement;
-    extern QuestUI::IncrementSetting* saberRotIncrement;
-    extern UnityEngine::UI::Toggle* enableSaberTailor;
-    extern UnityEngine::UI::Toggle* enableBaseGameAdjustment;
-    extern HMUI::SimpleTextDropdown* incrementUnits;
-    extern HMUI::SimpleTextDropdown* displayUnits;
+    extern BSML::IncrementSetting* saberPosIncrement;
+    extern BSML::IncrementSetting* saberRotIncrement;
+    extern BSML::ToggleSetting* enableSaberTailor;
+    extern BSML::ToggleSetting* enableBaseGameAdjustment;
+    extern BSML::DropdownListSetting* incrementUnits;
+    extern BSML::DropdownListSetting* displayUnits;
     void updatePosIncrements(int inc);
     void updateRotIncrements(int inc);
 }

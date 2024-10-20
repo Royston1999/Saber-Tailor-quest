@@ -9,51 +9,53 @@
 #include "UI/SaberTailorRightHand.hpp"
 #include "main.hpp"
 
-using namespace QuestUI::BeatSaberUI;
+using namespace BSML::Lite;
 using namespace UnityEngine;
+using namespace System::Collections::Generic;
 template<class T>
 using IReadOnlyList = System::Collections::Generic::IReadOnlyList_1<T>;
 
-HMUI::SimpleTextDropdown* createModalDropdown;
+BSML::DropdownListSetting* createModalDropdown;
 HMUI::InputFieldView* createModalInput;
-UI::Toggle* copyConfigToggle;
+BSML::ToggleSetting* copyConfigToggle;
 std::string currentConfigName = "";
 std::string newConfigName = "";
 std::string configToCopyFrom;
-std::vector<StringW> configNames;
+std::vector<std::string> configNames;
 
 void MirrorConfigValuesToUI(){
     using namespace SaberTailor::Tabs::MainSettings;
     using namespace SaberTailor::Tabs::Scale;
     using namespace SaberTailor::Tabs::Trail;
     using namespace SaberTailor::Tabs::CSH;
-    enableSaberTailor->set_isOn(GET_VALUE(isGripModEnabled));
+    enableSaberTailor->toggle->set_isOn(GET_VALUE(isGripModEnabled));
     // enableBaseGameAdjustment->set_isOn(true);
-    saberPosIncrement->CurrentValue = GET_VALUE(saberPosIncValue);
-    saberRotIncrement->CurrentValue = GET_VALUE(saberRotIncrement);
-    incrementUnits->SelectCellWithIdx(GET_VALUE(saberPosIncUnit == "cm" ? 0 : 1));
+    saberPosIncrement->currentValue = GET_VALUE(saberPosIncValue);
+    saberRotIncrement->currentValue = GET_VALUE(saberRotIncrement);
+    incrementUnits->dropdown->SelectCellWithIdx(GET_VALUE(saberPosIncUnit == "cm" ? 0 : 1));
     std::string s = GET_VALUE(saberPosDisplayUnit);
-    displayUnits->SelectCellWithIdx(s == "cm" ? 0 : s == "inches" ? 1 : s == "miles" ? 2 : 3);
+    displayUnits->dropdown->SelectCellWithIdx(s == "cm" ? 0 : s == "inches" ? 1 : s == "miles" ? 2 : 3);
     IncrementHelper::SetIncrementText(saberPosIncrement, std::to_string(GET_VALUE(saberPosIncValue)) + " " + GET_VALUE(saberPosIncUnit));
     IncrementHelper::SetIncrementText(saberRotIncrement, std::to_string(GET_VALUE(saberRotIncrement)) + " deg");
 
-    enableSettingsOverride->set_isOn(GET_VALUE(overrideSettingsMethod));
-    enableAxisArrows->set_isOn(GET_VALUE(axisEnabled));
-    mirrorZRot->set_isOn(GET_VALUE(mirrorZRot));
-    axisInReplay->set_isOn(GET_VALUE(axisInReplay));
+    // enableSettingsOverride->toggle->set_isOn(GET_VALUE(overrideSettingsMethod));
+    offsetApplicationMethod->dropdown->SelectCellWithIdx((int)GET_VALUE(offsetApplicationMethod));
+    enableAxisArrows->toggle->set_isOn(GET_VALUE(axisEnabled));
+    mirrorZRot->toggle->set_isOn(GET_VALUE(mirrorZRot));
+    axisInReplay->toggle->set_isOn(GET_VALUE(axisInReplay));
 
-    enableScaleSettings->set_isOn(GET_VALUE(isSaberScaleModEnabled));
-    scaleHitbox->set_isOn(GET_VALUE(saberScaleHitbox));
-    length->CurrentValue = GET_VALUE(saberLength);
-    width->CurrentValue = GET_VALUE(saberGirth);
+    enableScaleSettings->toggle->set_isOn(GET_VALUE(isSaberScaleModEnabled));
+    scaleHitbox->toggle->set_isOn(GET_VALUE(saberScaleHitbox));
+    length->currentValue = GET_VALUE(saberLength);
+    width->currentValue = GET_VALUE(saberGirth);
     IncrementHelper::SetIncrementText(width, std::to_string(GET_VALUE(saberGirth)) + "%");
     IncrementHelper::SetIncrementText(length, std::to_string(GET_VALUE(saberLength)) + "%");
 
-    enableTrailSettings->set_isOn(GET_VALUE(isTrailModEnabled));
-    enableSaberTrails->set_isOn(GET_VALUE(isTrailEnabled));
-    duration->CurrentValue = GET_VALUE(trailDuration);
-    whitestep->CurrentValue = GET_VALUE(trailWhiteSectionDuration);
-    granularity->CurrentValue = GET_VALUE(trailGranularity);
+    enableTrailSettings->toggle->set_isOn(GET_VALUE(isTrailModEnabled));
+    enableSaberTrails->toggle->set_isOn(GET_VALUE(isTrailEnabled));
+    duration->currentValue = GET_VALUE(trailDuration);
+    whitestep->currentValue = GET_VALUE(trailWhiteSectionDuration);
+    granularity->currentValue = GET_VALUE(trailGranularity);
     IncrementHelper::SetIncrementText(duration, IncrementHelper::Round((float)GET_VALUE(trailDuration)/1000.0f, 1) + " s");
     IncrementHelper::SetIncrementText(whitestep, IncrementHelper::Round((float)GET_VALUE(trailWhiteSectionDuration)/1000.0f, 1) + " s");
     SaberTailor::UI::RightHand::UpdateSliderValues();
@@ -66,17 +68,23 @@ void MirrorConfigValuesToUI(){
     GET_VALUE(currentLeftHandRotation) = Vector3(GET_VALUE(leftHandRotation));
 }
 
-IReadOnlyList<StringW>* CreateConfigNameList(std::vector<StringW>* names){
-    List<StringW>* list = List<StringW>::New_ctor();
-    for (auto& configName : *names) list->Add(configName);
-    return reinterpret_cast<IReadOnlyList<StringW>*>(list);
+ListW<System::Object*> CreateConfigNamesList(){
+    auto list = ListW<System::Object*>::New();
+    for (auto& configName : configNames) list->Add(static_cast<System::Object*>(StringW(configName).convert()));
+    return list;
+}
+
+std::vector<std::string_view> ConfigNamesReference() {
+    std::vector<std::string_view> help;
+    for (std::string& s : configNames) help.emplace_back(s);
+    return help;
 }
 
 namespace SaberTailor::Tabs::Profile{
     GameObject* CreateProfileSettings(Transform* parent){
         auto* container = CreateScrollableSettingsContainer(parent);
 
-        auto* text = CreateText(container->get_transform(), "Profiles");
+        auto* text = CreateText(container->get_transform(), "Profiles", {0, 0}, {0, 7});
         text->set_fontSize(6.0f);
         text->set_alignment(TMPro::TextAlignmentOptions::Center);
 
@@ -84,8 +92,8 @@ namespace SaberTailor::Tabs::Profile{
         configToCopyFrom = getMainConfig().currentConfig.GetValue();
         configNames = ConfigHelper::GetExistingConfigs();
 
-        auto* createModal = CreateModal(container->get_transform(), UnityEngine::Vector2(60, 40), [](HMUI::ModalView *modal) {}, true);
-        auto* deleteModal = CreateModal(container->get_transform(), UnityEngine::Vector2(60, 40), [](HMUI::ModalView *modal) {}, true);
+        HMUI::ModalView* createModal = CreateModal(container->get_transform(), UnityEngine::Vector2(60, 40), []() {}, true);
+        HMUI::ModalView* deleteModal = CreateModal(container->get_transform(), UnityEngine::Vector2(60, 40), []() {}, true);
 
         auto* deleteVert = CreateVerticalLayoutGroup(deleteModal->get_transform());
         deleteVert->get_gameObject()->GetComponentInChildren<UnityEngine::UI::LayoutElement*>()->set_preferredWidth(45.0f);
@@ -94,7 +102,7 @@ namespace SaberTailor::Tabs::Profile{
         deleteText->set_enableWordWrapping(true);
         deleteText->set_alignment(TMPro::TextAlignmentOptions::Center);
         auto* deleteHoriz = CreateHorizontalLayoutGroup(deleteVert->get_transform());
-        deleteHoriz->set_spacing(4.0f);
+        // deleteHoriz->set_spacing(4.0f);
 
         auto* createVert = CreateVerticalLayoutGroup(createModal->get_transform());
         createVert->get_gameObject()->GetComponentInChildren<UnityEngine::UI::LayoutElement*>()->set_preferredWidth(45.0f);
@@ -108,7 +116,8 @@ namespace SaberTailor::Tabs::Profile{
             createModalDropdown->get_transform()->get_parent()->GetComponentInChildren<TMPro::TextMeshProUGUI*>()->set_alpha((int)value);
         });
 
-        createModalDropdown = CreateDropdown(createVert->get_transform(), "Select Profile", getMainConfig().currentConfig.GetValue(), configNames, [](StringW thing){
+        std::vector<std::string_view> initialNames(ConfigNamesReference());
+        createModalDropdown = CreateDropdown(createVert->get_transform(), "Select Profile", getMainConfig().currentConfig.GetValue(), initialNames, [](StringW thing){
             configToCopyFrom = static_cast<std::string>(thing);
         });
 
@@ -121,55 +130,57 @@ namespace SaberTailor::Tabs::Profile{
             MirrorConfigValuesToUI();
         };
 
-        auto* profileSelector = CreateDropdown(container->get_transform(), "Select Profile", getMainConfig().currentConfig.GetValue(), configNames, dropdownAction);
+        auto* profileSelector = CreateDropdown(container->get_transform(), "Select Profile", getMainConfig().currentConfig.GetValue(), initialNames, dropdownAction);
 
-        auto* confirmDeleteButton = CreateUIButton(deleteHoriz->get_transform(), "Yes", [deleteModal, profileSelector, dropdownAction](){
+        auto* confirmDeleteButton = CreateUIButton(deleteHoriz->get_transform(), "Yes", Vector2(0, 0), {20, 0}, [deleteModal, profileSelector, dropdownAction](){
             ConfigHelper::DeleteFile(currentConfigName);
             configNames = ConfigHelper::GetExistingConfigs();
-            auto* readOnlyList = CreateConfigNameList(&configNames);
-            profileSelector->SelectCellWithIdx(0);
-            profileSelector->SetTexts(readOnlyList);
-            dropdownAction("Default");
-            createModalDropdown->SelectCellWithIdx(0);
-            createModalDropdown->SetTexts(readOnlyList);
+            profileSelector->dropdown->SelectCellWithIdx(0);
+            profileSelector->values = CreateConfigNamesList();
+            profileSelector->UpdateChoices();
+            dropdownAction(ConfigHelper::GetDefaultConfigName());
+            createModalDropdown->dropdown->SelectCellWithIdx(0);
+            createModalDropdown->values = CreateConfigNamesList();
+            createModalDropdown->UpdateChoices();
             deleteModal->Hide(true, nullptr);
         });
 
         auto* createHoriz = CreateHorizontalLayoutGroup(createVert->get_transform());
-        createHoriz->set_spacing(4.0f);
+        // createHoriz->set_spacing(4.0f);
 
-        CreateUIButton(createHoriz->get_transform(), "Create", [createModal, profileSelector, dropdownAction](){
+        CreateUIButton(createHoriz->get_transform(), "Create", Vector2(0, 0), {20, 0}, [createModal, profileSelector, dropdownAction](){
             std::replace(newConfigName.begin(), newConfigName.end(), ' ', '_');
             if (newConfigName != "" && !ConfigHelper::HasConfigWithName(newConfigName)){
-                bool copyingConfig = copyConfigToggle->get_isOn();
+                bool copyingConfig = copyConfigToggle->toggle->get_isOn();
                 ConfigHelper::CreateNewConfigFile(newConfigName, copyingConfig ? configToCopyFrom : "");
                 configNames = ConfigHelper::GetExistingConfigs();
-                auto* readOnlyList = CreateConfigNameList(&configNames);
                 int cellIndex = -1;
-                for (int i=0; i<configNames.size(); i++) if((configNames)[i] == newConfigName) cellIndex = i;
+                for (int i=0; i<configNames.size(); i++) if(configNames[i] == newConfigName) cellIndex = i;
                 cellIndex = cellIndex == -1 ? 0 : cellIndex;
-                profileSelector->SelectCellWithIdx(cellIndex);
-                profileSelector->SetTexts(readOnlyList);
+                profileSelector->dropdown->SelectCellWithIdx(cellIndex);
+                profileSelector->values = CreateConfigNamesList();
+                profileSelector->UpdateChoices();
                 dropdownAction(newConfigName);
-                createModalDropdown->SelectCellWithIdx(cellIndex);
-                createModalDropdown->SetTexts(readOnlyList);
-                createModalInput->clearSearchButton->get_onClick()->Invoke();
+                createModalDropdown->dropdown->SelectCellWithIdx(cellIndex);
+                createModalDropdown->values = CreateConfigNamesList();
+                createModalDropdown->UpdateChoices();
+                createModalInput->____clearSearchButton->get_onClick()->Invoke();
                 configToCopyFrom = "";
                 createModal->Hide(true, nullptr);
             }
         });
 
-        CreateUIButton(createHoriz->get_transform(), "Cancel", [createModal](){
+        CreateUIButton(createHoriz->get_transform(), "Cancel", Vector2(0, 0), {20, 0}, [createModal](){
             createModal->Hide(true, nullptr);
         });
 
-        CreateUIButton(deleteHoriz->get_transform(), "No", [deleteModal](){
+        CreateUIButton(deleteHoriz->get_transform(), "No", Vector2(0, 0), {20, 0}, [deleteModal](){
             deleteModal->Hide(true, nullptr);
         });
 
         CreateUIButton(container->get_transform(), "Create New Profile", [createModal](){
             createModal->Show(true, true, nullptr);
-            auto cb = createModal->blockerGO->get_gameObject()->GetComponent<UnityEngine::Canvas*>();
+            auto cb = createModal->____blockerGO->get_gameObject()->GetComponent<UnityEngine::Canvas*>();
             auto cm = createModal->get_gameObject()->GetComponent<UnityEngine::Canvas*>();
             cm->set_overrideSorting(true); 
             cm->set_sortingOrder(33);
@@ -177,8 +188,8 @@ namespace SaberTailor::Tabs::Profile{
         });
 
         CreateUIButton(container->get_transform(), "Delete Profile", [deleteModal, deleteText, confirmDeleteButton](){
-            deleteText->SetText("Are you sure you want to delete the config '" + currentConfigName + "'?");
-            confirmDeleteButton->set_interactable(currentConfigName == "Default" ? false : true);
+            deleteText->set_text("Are you sure you want to delete the config '" + currentConfigName + "'?");
+            confirmDeleteButton->set_interactable(ConfigHelper::toLower(currentConfigName) == "default" ? false : true);
             deleteModal->Show(true, true, nullptr);
         });
 

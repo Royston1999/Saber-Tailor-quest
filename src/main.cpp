@@ -19,6 +19,8 @@
 #include "GlobalNamespace/SaberTrailRenderer.hpp"
 #include "UnityEngine/Mesh.hpp"
 #include "bs-utils/shared/utils.hpp"
+#include "bsml/shared/BSML.hpp"
+#include "UnityEngine/SceneManagement/Scene.hpp"
 
 //april fools stuff
 #include <ctime>
@@ -29,30 +31,34 @@
 #include "GlobalNamespace/GameplayLevelSceneTransitionEvents.hpp"
 #include "System/Action.hpp"
 #include "GlobalNamespace/NoteData.hpp"
-#include "GlobalNamespace/MainSettingsModelSO.hpp"
-#include "GlobalNamespace/BeatmapDataCache.hpp"
-
-#include "GlobalNamespace/IDifficultyBeatmap.hpp"
-#include "GlobalNamespace/IBeatmapLevel.hpp"
-#include "GlobalNamespace/IPreviewBeatmapLevel.hpp"
+#include "GlobalNamespace/MainMenuViewController.hpp"
 
 #include "conditional-dependencies/shared/main.hpp"
 #include "GlobalNamespace/PauseController.hpp"
 #include "GlobalNamespace/IGamePause.hpp"
 #include "Utils/EasyDelegate.hpp"
+#include "SaberTailorSuperSlider.hpp"
+#include "GlobalNamespace/VRController.hpp"
+#include "GlobalNamespace/IVRPlatformHelper.hpp"
+#include "GlobalNamespace/VRControllerTransformOffset.hpp"
+#include "GlobalNamespace/ControllersTransformSettingsViewController.hpp"
+#include "GlobalNamespace/StandardLevelScenesTransitionSetupDataSO.hpp"
+#include "GlobalNamespace/OVRPlugin.hpp"
+
+#include "System/Nullable_1.hpp"
+
+#include "BeatSaber/PerformancePresets/PerformancePreset.hpp"
+
 
 using namespace UnityEngine;
 using namespace GlobalNamespace;
 using namespace ControllerSettingsHelper;
 
 SaberTailorConfig SaberTailorMain::config;  
-SaberTailor::Views::SettingsViewController* SaberTailorMain::saberTailorMainSettingsPage = nullptr;
-SaberTailor::Views::SaberTailorLeftHand* SaberTailorMain::saberTailorLeftHand = nullptr;
-SaberTailor::Views::SaberTailorRightHand* SaberTailorMain::saberTailorRightHand = nullptr;
 bool isReplay = false;
 bool metalitReplay = false;
 
-ModInfo modInfo; // Stores the ID and version of our mod, and is sent to the modloader upon startup
+modloader::ModInfo modInfo{MOD_ID, VERSION, 0};
 AprilFools::RandomSaber randomSaber;
 // Loads the config from disk using our modInfo, then returns it for use
 Configuration& getConfig() {
@@ -62,18 +68,16 @@ Configuration& getConfig() {
 }
 
 // Returns a logger, useful for printing debug messages
-Logger& getLogger() {
-    static Logger* logger = new Logger(modInfo);
-    return *logger;
+const Paper::ConstLoggerContext<12UL>& getLogger() {
+    static constexpr auto Logger = Paper::ConstLoggerContext("sabertailor");
+    return Logger;
 }
 
 // Called at the early stages of game loading
-extern "C" void setup(ModInfo& info) {
-    info.id = ID;
-    info.version = VERSION;
-    modInfo = info;
+SABER_TAILOR_EXPORT_FUNC void setup(CModInfo& info) {
+    info = modInfo.to_c();
 
-    getConfig().Load(); // Load the config file
+    getConfig().Load();
     getLogger().info("Completed setup!");
 }
 
@@ -85,69 +89,68 @@ void SaberTailorMain::loadConfig() {
     int month = 1 + ltm->tm_mon;
     int day = ltm->tm_mday;
     SaberTailorMain::config.isAprilFools = (month == 4 && day == 1);
-    getLogger().info("Month: %i, Day: %i", month, day);
-    getLogger().info("Is April Fools?: %i", (int)SaberTailorMain::config.isAprilFools);
+    getLogger().info("Month: {0}, Day: {1}", month, day);
+    getLogger().info("Is April Fools?: {}", (int)SaberTailorMain::config.isAprilFools);
 }
 
-MAKE_HOOK_MATCH(ControllerTransform, &OculusVRHelper::AdjustControllerTransform, void, OculusVRHelper* self, XR::XRNode node, Transform* transform, Vector3 position, Vector3 rotation) 
-{  
-    // right controller
-    if (node == XR::XRNode::RightHand)
-    {
-        if (SaberTailorMain::config.currentConfig.isGripModEnabled) // overrides base game settings with the saber tailor config (right hand)
-        {
-            position = Vector3(GET_VALUE(rightHandPosition)) /1000;
-            rotation = Vector3(GET_VALUE(rightHandRotation));
-        }
-        if (SaberTailorMain::config.isAprilFools && transform->get_name() == "RightHand"){
-            rotation.x += randomSaber.rightXRot.first;
-            rotation.y += randomSaber.rightYRot.first;
-            rotation.z += randomSaber.rightZRot.first;
-            position.z += randomSaber.zPos;
-        }
-        if (SaberTailorMain::config.currentConfig.overrideSettingsMethod) // overrides the order in which the settings are applied to the controller
-        {
-            transform->Rotate(Vector3(0, 0, rotation.z));
-			transform->Translate(position);
-			transform->Rotate(Vector3(rotation.x, rotation.y, 0));
-            ControllerTransform(self, node, transform, Vector3(0.0f, 0.0f, -0.055f), Vector3(40, 0, 0));
-        }
-        else ControllerTransform(self, node, transform, position, rotation); // runs the original method which applies the settings in normal order
-    }
-    // left controller
-    if (node == XR::XRNode::LeftHand)
-    {
-        if (SaberTailorMain::config.currentConfig.isGripModEnabled) // overrides base game settings with the saber tailor config (left hand)
-        {
-            position = Vector3(GET_VALUE(leftHandPosition)) /1000;
-            rotation = Vector3(GET_VALUE(leftHandRotation));
-        }
-        else if (SaberTailorMain::config.currentConfig.mirrorZRot) rotation.z = -rotation.z; // imagine the base game not having bugs
-        if (SaberTailorMain::config.isAprilFools && transform->get_name() == "LeftHand"){
-            rotation.x += randomSaber.leftXRot.first;
-            rotation.y += randomSaber.leftYRot.first;
-            rotation.z += randomSaber.leftZRot.first;
-            position.z += randomSaber.zPos;
-        }
-        if (SaberTailorMain::config.currentConfig.overrideSettingsMethod) // overrides the order in which the settings are applied to the controller
-        {
-            transform->Rotate(Vector3(0, 0, rotation.z));
-			transform->Translate(position);
-			transform->Rotate(Vector3(rotation.x, rotation.y, 0));
-            ControllerTransform(self, node, transform, Vector3(0.0f, 0.0f, -0.055f), Vector3(40, 0, 0));
-        }
-        else ControllerTransform(self, node, transform, position, rotation); // runs the original method which applies the settings in normal order
-    }
+IVRPlatformHelper* getPlatformHelper() {
+    static SafePtrUnity<ControllersTransformSettingsViewController> helper;
+    if (helper) return helper->____vrPlatformHelper;
+    helper = Resources::FindObjectsOfTypeAll<ControllersTransformSettingsViewController*>().front_or_default();
+    return helper->____vrPlatformHelper;
 }
 
-MAKE_HOOK_MATCH(MenuTransitionsHelper_RestartGame, &MenuTransitionsHelper::RestartGame, void, MenuTransitionsHelper* self, System::Action_1<Zenject::DiContainer*>* finishCallback)
-{
-    // stops soft restart from ruining my life
-    Object::Destroy(SaberTailorMain::saberTailorMainSettingsPage);
-    SaberTailorMain::saberTailorMainSettingsPage = nullptr;
-    SaberTailorMain::saberTailorLeftHand = nullptr;
-    SaberTailorMain::saberTailorRightHand = nullptr;
-    MenuTransitionsHelper_RestartGame(self, finishCallback);
+static Vector3 operator/(Vector3 a, float_t b) { return Vector3::op_Division(a,b); }
+static Vector3 operator+=(Vector3& a, Vector3 b) { return a = Vector3::op_Addition(a, b); }
+static void operator*=(Quaternion& a, Quaternion b) { a = Quaternion::op_Multiply(a, b); }
+
+MAKE_HOOK_MATCH(ControllerTransform, static_cast<bool(VRController::*)(ByRef<Pose>)>(&VRController::TryGetControllerOffset), bool, VRController* self, ByRef<Pose> poseOffset) {
+    
+    if (!(GET_VALUE(isGripModEnabled) || GET_VALUE(offsetApplicationMethod) != SaberTailor::ApplicationMethod::Default || SaberTailorMain::config.isAprilFools)) return ControllerTransform(self, poseOffset);
+
+    Pose controllerPose = self->____transformOffset ? self->____transformOffset->get_poseOffset() : Pose();
+    bool isRightHand = self->get_node() == XR::XRNode::RightHand;
+
+    if (GET_VALUE(isGripModEnabled)) {
+        if (isRightHand) controllerPose = {Vector3(GET_VALUE(rightHandPosition))/1000, Quaternion::Euler(Vector3(GET_VALUE(rightHandRotation)))};
+        else controllerPose = {Vector3(GET_VALUE(leftHandPosition))/1000, Quaternion::Euler(Vector3(GET_VALUE(leftHandRotation)))};
+    }
+    if (SaberTailorMain::config.isAprilFools) {
+        if (self->get_transform()->get_name() == "RightHand")
+            controllerPose.rotation *= Quaternion::Euler(randomSaber.rightXRot.first, randomSaber.rightYRot.first, randomSaber.rightZRot.first);
+        else if (self->get_transform()->get_name() == "LeftHand")
+            controllerPose.rotation *= Quaternion::Euler(randomSaber.leftXRot.first, randomSaber.leftYRot.first, randomSaber.leftZRot.first);
+        controllerPose.position.z += randomSaber.zPos;
+    }
+    SaberTailor::ApplicationMethod applicationMethod = GET_VALUE(offsetApplicationMethod);
+    if (applicationMethod == SaberTailor::ApplicationMethod::Default) {
+        self->____vrPlatformHelper->TryGetPoseOffsetForNode(self->____node, ByRef<Pose>(poseOffset));
+        if (GET_VALUE(isGripModEnabled) && !isRightHand) poseOffset = VRController::InvertControllerPose(controllerPose);
+        poseOffset = VRController::AdjustPose(poseOffset.heldRef, controllerPose);
+        if (!GET_VALUE(isGripModEnabled) && !isRightHand) poseOffset = VRController::InvertControllerPose(controllerPose);
+        return true;
+    }
+    UnityW<Transform> anchor = self->get_viewAnchorTransform();
+    if (applicationMethod == SaberTailor::ApplicationMethod::PreUnityUpdate) {
+        if (!GET_VALUE(isGripModEnabled) && !isRightHand) controllerPose = VRController::InvertControllerPose(controllerPose);
+        controllerPose.position += {0.0f, 0.0f, 0.055f};
+        controllerPose.rotation *= Quaternion::Euler({-40.0f, 0.0f, 0.0f});
+        anchor->SetLocalPositionAndRotation(Vector3::get_zero(), Quaternion::get_identity());
+        anchor->Rotate(controllerPose.rotation.get_eulerAngles());
+        anchor->Translate(controllerPose.position);
+        
+    }
+    else if(applicationMethod == SaberTailor::ApplicationMethod::ElectroMethod) {
+        if (!GET_VALUE(isGripModEnabled) && !isRightHand) controllerPose = VRController::InvertControllerPose(controllerPose);
+        anchor->SetLocalPositionAndRotation(Vector3::get_zero(), Quaternion::get_identity());
+        anchor->Rotate({0, 0, controllerPose.rotation.get_eulerAngles().z});
+        anchor->Translate(controllerPose.position);
+        anchor->Rotate({controllerPose.rotation.get_eulerAngles().x, controllerPose.rotation.get_eulerAngles().y, 0});
+    }
+    if (self->___anchorUpdateEvent) {
+        self->___anchorUpdateEvent->Invoke(self, {anchor->get_localPosition(), anchor->get_localRotation()});
+    }
+    return false;
 }
 
 MAKE_HOOK_MATCH(AxisOnStart, &MainMenuViewController::DidActivate, void, MainMenuViewController* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling)
@@ -157,19 +160,20 @@ MAKE_HOOK_MATCH(AxisOnStart, &MainMenuViewController::DidActivate, void, MainMen
     if (!firstActivation) return;
     AprilFools::Init();
     if (SaberTailorMain::config.currentConfig.axisEnabled){
-        for (auto& controller : Resources::FindObjectsOfTypeAll<VRController*>()) AxisDisplay::CreateAxes(controller->get_transform());
+        for (auto& controller : Resources::FindObjectsOfTypeAll<VRController*>()) AxisDisplay::CreateAxes(controller->get_viewAnchorTransform());
     }
+    SaberTailor::SaberTailorSuperSlider::Init();
 }
 
 MAKE_HOOK_MATCH(SaberModelContainer_Start, &SaberModelContainer::Start, void, SaberModelContainer* self) {
     SaberModelContainer_Start(self);
     if (SceneManagement::SceneManager::GetActiveScene().get_name() == "GameCore") {
         if (SaberTailorMain::config.currentConfig.isSaberScaleModEnabled){
-            Saber* saber = self->saber;
+            Saber* saber = self->____saber;
             auto saberBottom = Vector3::get_zero();
             auto saberTop = Vector3::get_zero();
-            saberBottom = saberBottom + Vector3(saber->saberBladeBottomTransform->get_position());
-            saberTop = saberTop + Vector3(saber->saberBladeTopTransform->get_position());
+            saberBottom = Vector3::op_Addition(saberBottom, Vector3(saber->____saberBladeBottomTransform->get_position()));
+            saberTop = Vector3::op_Addition(saberTop, Vector3(saber->____saberBladeTopTransform->get_position()));
             float length = (float)(SaberTailorMain::config.currentConfig.saberLength) / 100.0f;
             float width = (float)(SaberTailorMain::config.currentConfig.saberGirth) / 100.0f;
 
@@ -180,47 +184,62 @@ MAKE_HOOK_MATCH(SaberModelContainer_Start, &SaberModelContainer::Start, void, Sa
 
             if (!SaberTailorMain::config.currentConfig.saberScaleHitbox){
                 // the trails are bound to this and idk how to fix it when saber length is adjusted :pain:
-                saber->saberBladeBottomTransform->set_position(saberBottom);
-                saber->saberBladeTopTransform->set_position(saberTop);
+                saber->____saberBladeBottomTransform->set_position(saberBottom);
+                saber->____saberBladeTopTransform->set_position(saberTop);
                 bs_utils::Submission::enable(modInfo);
             }
             else bs_utils::Submission::disable(modInfo); 
         }
         else bs_utils::Submission::enable(modInfo);
         if (SaberTailorMain::config.currentConfig.isTrailModEnabled){
-            auto trail = self->get_transform()->GetComponentInChildren<SaberModelController*>()->saberTrail;
-            trail->trailDuration = (float)SaberTailorMain::config.currentConfig.trailDuration/1000.0f;
-            trail->whiteSectionMaxDuration = (float)SaberTailorMain::config.currentConfig.trailWhiteSectionDuration/1000.0f;
-            trail->granularity = SaberTailorMain::config.currentConfig.trailGranularity;
-            trail->trailRenderer->set_enabled(SaberTailorMain::config.currentConfig.isTrailEnabled);
+            auto trail = self->get_transform()->GetComponentInChildren<SaberModelController*>()->____saberTrail;
+            trail->____trailDuration = (float)SaberTailorMain::config.currentConfig.trailDuration/1000.0f;
+            trail->____whiteSectionMaxDuration = (float)SaberTailorMain::config.currentConfig.trailWhiteSectionDuration/1000.0f;
+            trail->____granularity = SaberTailorMain::config.currentConfig.trailGranularity;
+            trail->____trailRenderer->set_enabled(SaberTailorMain::config.currentConfig.isTrailEnabled);
         }
         if (isReplay && SaberTailorMain::config.currentConfig.axisInReplay){
-            AxisDisplay::CreateAxes(self->saber->get_transform());
+            AxisDisplay::CreateAxes(self->get_transform());
         }
     }
 }
 
+MAKE_HOOK_MATCH(ReplayCheck, &StandardLevelScenesTransitionSetupDataSO::InitAndSetupScenes, void, StandardLevelScenesTransitionSetupDataSO* self, PlayerSpecificSettings* playerSpecificSettings, StringW backButtonText, bool startPaused) {
+    ReplayCheck(self, playerSpecificSettings, backButtonText, startPaused);
+    auto metalit = CondDeps::Find<bool>("replay", "IsInReplay");
+    if (self->get_gameMode() == "Replay" || (metalit.has_value() && (*metalit)())) isReplay = true;
+}
+
 // April Fools Stuff
 
-MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(GameplayCoreSceneSetupData_ctor, "", "GameplayCoreSceneSetupData", ".ctor", void, GameplayCoreSceneSetupData* self, IDifficultyBeatmap* difficultyBeatmap, IPreviewBeatmapLevel* previewBeatmapLevel, GameplayModifiers* gameplayModifiers, PlayerSpecificSettings* playerSpecificSettings, PracticeSettings* practiceSettings, bool useTestNoteCutSoundEffects, EnvironmentInfoSO* environmentInfo, ColorScheme* colorScheme, MainSettingsModelSO* mainSettingsModel, BeatmapDataCache* beatmapDataCache)
+MAKE_HOOK_MATCH(GameplayCoreSceneSetupData_ctor, static_cast<void(GameplayCoreSceneSetupData::*)(ByRef<BeatmapKey>, BeatmapLevel*, GameplayModifiers*, PlayerSpecificSettings*, PracticeSettings*, bool, EnvironmentInfoSO*, ColorScheme*, BeatSaber::PerformancePresets::PerformancePreset*, AudioClipAsyncLoader*, BeatmapDataLoader*, bool, bool, System::Nullable_1<RecordingToolManager::SetupData>)>(&GameplayCoreSceneSetupData::_ctor), void, GameplayCoreSceneSetupData* self, ByRef<BeatmapKey> beatmapKey, BeatmapLevel* beatmapLevel, GameplayModifiers* gameplayModifiers, PlayerSpecificSettings* playerSpecificSettings, PracticeSettings* practiceSettings, bool useTestNoteCutSoundEffects, EnvironmentInfoSO* environmentInfo, ColorScheme* colorScheme, BeatSaber::PerformancePresets::PerformancePreset* performancePreset, AudioClipAsyncLoader* audioClipAsyncLoader, BeatmapDataLoader* beatmapDataLoader, bool enableBeatmapDataCaching, bool allowNullBeatmapLevelData, System::Nullable_1<RecordingToolManager::SetupData> recordingToolData)
 {
-    GameplayCoreSceneSetupData_ctor(self, difficultyBeatmap, previewBeatmapLevel, gameplayModifiers, playerSpecificSettings, practiceSettings, useTestNoteCutSoundEffects, environmentInfo, colorScheme, mainSettingsModel, beatmapDataCache);
+    GameplayCoreSceneSetupData_ctor(self, beatmapKey, beatmapLevel, gameplayModifiers, playerSpecificSettings, practiceSettings, useTestNoteCutSoundEffects, environmentInfo, colorScheme, performancePreset, audioClipAsyncLoader, beatmapDataLoader, enableBeatmapDataCaching, allowNullBeatmapLevelData, recordingToolData);
     if (SaberTailorMain::config.isAprilFools){
         randomSaber.zPos -= 0.003;
         AprilFools::generateRandomSaberMovementsForSession();
     }
 }
-MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(GameplayLevelSceneTransitionEvents_ctor, "", "GameplayLevelSceneTransitionEvents", ".ctor", void, GameplayLevelSceneTransitionEvents* self, StandardLevelScenesTransitionSetupDataSO* standardLevelScenesTransitionSetupData, MissionLevelScenesTransitionSetupDataSO* missionLevelScenesTransitionSetupData, MultiplayerLevelScenesTransitionSetupDataSO* multiplayerLevelScenesTransitionSetupData)
+MAKE_HOOK_MATCH(GameplayLevelSceneTransitionEvents_ctor, &GameplayLevelSceneTransitionEvents::_ctor, void, GameplayLevelSceneTransitionEvents* self, StandardLevelScenesTransitionSetupDataSO* standardLevelScenesTransitionSetupData, MissionLevelScenesTransitionSetupDataSO* missionLevelScenesTransitionSetupData, MultiplayerLevelScenesTransitionSetupDataSO* multiplayerLevelScenesTransitionSetupData)
 {
-    GameplayLevelSceneTransitionEvents_ctor(self, standardLevelScenesTransitionSetupData, missionLevelScenesTransitionSetupData, multiplayerLevelScenesTransitionSetupData);
+    GameplayLevelSceneTransitionEvents_ctor(self, standardLevelScenesTransitionSetupData, missionLevelScenesTransitionSetupData, multiplayerLevelScenesTransitionSetupData);    
     self->add_anyGameplayLevelDidFinishEvent(EasyDelegate::MakeDelegate<System::Action*>([](){isReplay = false;}));
 }
+
 MAKE_HOOK_MATCH(NoteMissed, &BeatmapObjectManager::HandleNoteControllerNoteWasMissed, void, BeatmapObjectManager* self, NoteController* noteController)
 {
     NoteMissed(self, noteController);
     if (SaberTailorMain::config.isAprilFools){
-        int hand = noteController->get_noteData()->get_colorType() == ColorType::ColorA ? 0 : 1;
-        AprilFools::updateValuesOnMiss(hand);
+        switch (noteController->get_noteData()->get_colorType()) {
+            case ColorType::ColorA:
+                AprilFools::updateValuesOnMiss(0); break;
+            case ColorType::ColorB:
+                AprilFools::updateValuesOnMiss(1); break;
+            case ColorType::None:
+                break;
+            default:
+                break;
+        }
     }
 }
 
@@ -228,17 +247,10 @@ MAKE_HOOK_MATCH(NoteCut, &BeatmapObjectManager::HandleNoteControllerNoteWasCut, 
 {
     NoteCut(self, noteController, noteCutInfo);
     if(SaberTailorMain::config.isAprilFools && !noteCutInfo.heldRef.directionOK){
-        int hand = noteCutInfo.heldRef.saberType.value;
+        int hand = noteCutInfo.heldRef.saberType.value__;
         AprilFools::updateValuesOnMiss(hand);
     }
 }
-
-MAKE_HOOK_MATCH(MenuTransitionsHelper_StartStandardLevel, static_cast<void(MenuTransitionsHelper::*)(StringW, IDifficultyBeatmap*, IPreviewBeatmapLevel*, OverrideEnvironmentSettings*, ColorScheme*, GameplayModifiers*, PlayerSpecificSettings*, PracticeSettings*, StringW, bool, bool, System::Action*, System::Action_2<StandardLevelScenesTransitionSetupDataSO*, LevelCompletionResults*>*, System::Action_2<LevelScenesTransitionSetupDataSO*, LevelCompletionResults*>*)>(&MenuTransitionsHelper::StartStandardLevel),
-        void, MenuTransitionsHelper* self, StringW gameMode, IDifficultyBeatmap* f2, IPreviewBeatmapLevel* f3, OverrideEnvironmentSettings* f4, ColorScheme* f5, GameplayModifiers* f6, PlayerSpecificSettings* f7, PracticeSettings* f8, StringW f9, bool f10, bool f11, System::Action* f12, System::Action_2<StandardLevelScenesTransitionSetupDataSO*, LevelCompletionResults*>* f13, System::Action_2<LevelScenesTransitionSetupDataSO*, LevelCompletionResults*>* f14) {
-            MenuTransitionsHelper_StartStandardLevel(self, gameMode, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14);
-            auto metalit = CondDeps::Find<bool>("replay", "IsInReplay");
-            if (gameMode == "Replay" || (metalit.has_value() && (*metalit)())) isReplay = true;
-        }
 
 MAKE_HOOK_MATCH(PauseController_Start, &PauseController::Start, void, PauseController* self){
     PauseController_Start(self);
@@ -247,30 +259,28 @@ MAKE_HOOK_MATCH(PauseController_Start, &PauseController::Start, void, PauseContr
         for (auto& axis : Resources::FindObjectsOfTypeAll<AxisDisplay*>()) 
             if (axis->get_name() == "AxisDisplayReplay") axis->get_gameObject()->set_active(value);
     };   
-    self->gamePause->add_didPauseEvent(EasyDelegate::MakeDelegate<System::Action*>([func](){func(false);}));
-    self->gamePause->add_didResumeEvent(EasyDelegate::MakeDelegate<System::Action*>([func](){func(true);}));
+    self->____gamePause->add_didPauseEvent(EasyDelegate::MakeDelegate<System::Action*>([func](){func(false);}));
+    self->____gamePause->add_didResumeEvent(EasyDelegate::MakeDelegate<System::Action*>([func](){func(true);}));
 }
 
 // Called later on in the game loading - a good time to install function hooks
-extern "C" void load() {
-    Modloader::requireMod("Qclaws");
+SABER_TAILOR_EXPORT_FUNC void late_load() {
     il2cpp_functions::Init();
     getMainConfig().Init(modInfo);
     SaberTailorMain::loadConfig();
-    QuestUI::Init();
+    BSML::Init();
     custom_types::Register::AutoRegister();
-    QuestUI::Register::RegisterModSettingsFlowCoordinator<SaberTailor::SettingsFlowCoordinator*>(modInfo); // display in settings
-    QuestUI::Register::RegisterMainMenuModSettingsFlowCoordinator<SaberTailor::SettingsFlowCoordinator*>(modInfo); // display in menu
+    BSML::Register::RegisterMainMenuFlowCoordinator("Saber Tailor", "edit saber stuff", csTypeOf(SaberTailor::SettingsFlowCoordinator*));
     getLogger().info("Installing hooks...");
-    INSTALL_HOOK(getLogger(), ControllerTransform);
-    INSTALL_HOOK(getLogger(), MenuTransitionsHelper_RestartGame);
+    INSTALL_HOOK_ORIG(getLogger(), ControllerTransform);
     INSTALL_HOOK(getLogger(), AxisOnStart);
     INSTALL_HOOK(getLogger(), NoteMissed);
     INSTALL_HOOK(getLogger(), NoteCut);
     INSTALL_HOOK(getLogger(), GameplayCoreSceneSetupData_ctor);
     INSTALL_HOOK(getLogger(), SaberModelContainer_Start);
-    INSTALL_HOOK(getLogger(), MenuTransitionsHelper_StartStandardLevel);
+    // INSTALL_HOOK(getLogger(), MenuTransitionsHelper_StartStandardLevel);
     INSTALL_HOOK(getLogger(), GameplayLevelSceneTransitionEvents_ctor);
     INSTALL_HOOK(getLogger(), PauseController_Start);
+    INSTALL_HOOK(getLogger(), ReplayCheck);
     getLogger().info("Installed all hooks!");
 }

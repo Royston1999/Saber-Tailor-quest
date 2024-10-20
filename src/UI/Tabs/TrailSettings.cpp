@@ -2,21 +2,21 @@
 #include "SaberTailorHelper.hpp"
 #include "main.hpp"
 
-using namespace QuestUI::BeatSaberUI;
+using namespace BSML::Lite;
 using namespace UnityEngine;
 
 namespace SaberTailor::Tabs::Trail{
 
-    QuestUI::IncrementSetting* duration;
-    QuestUI::IncrementSetting* whitestep;
-    UnityEngine::UI::Toggle* enableTrailSettings;
-    UnityEngine::UI::Toggle* enableSaberTrails;
-    QuestUI::IncrementSetting* granularity;
+    BSML::IncrementSetting* duration;
+    BSML::IncrementSetting* whitestep;
+    BSML::ToggleSetting* enableTrailSettings;
+    BSML::ToggleSetting* enableSaberTrails;
+    BSML::IncrementSetting* granularity;
 
     GameObject* CreateTrailSettings(Transform* parent){
         auto* container = CreateScrollableSettingsContainer(parent);
 
-        auto* text = CreateText(container->get_transform(), "Trails");
+        auto* text = CreateText(container->get_transform(), "Trails", {0, 0}, {0, 7});
         text->set_fontSize(6.0f);
         text->set_alignment(TMPro::TextAlignmentOptions::Center);
 
@@ -47,7 +47,7 @@ namespace SaberTailor::Tabs::Trail{
         });
         AddHoverHint(whitestep->get_gameObject(), "Tweak how much of the white section you can see in the saber trail");
 
-        auto* qosmeticsPoo = CreateText(container->get_transform(), "use Qosmetics instead if installed");
+        auto* qosmeticsPoo = CreateText(container->get_transform(), "use Qosmetics instead if installed", {0, 0}, {0, 5});
         qosmeticsPoo->set_fontSize(4.5f);
         qosmeticsPoo->set_alignment(TMPro::TextAlignmentOptions::Center);
         qosmeticsPoo->set_color(UnityEngine::Color::get_red());

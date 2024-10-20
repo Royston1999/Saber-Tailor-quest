@@ -35,5 +35,6 @@ namespace AprilFools{
             randomSaber.rightYRot.first += randomSaber.rightYRot.second;
             randomSaber.rightZRot.first += randomSaber.rightZRot.second;
         }
+        getPlatformHelper()->RefreshControllersReference();
     }
 }

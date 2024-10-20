@@ -2,20 +2,20 @@
 #include "SaberTailorHelper.hpp"
 #include "main.hpp"
 
-using namespace QuestUI::BeatSaberUI;
+using namespace BSML::Lite;
 using namespace UnityEngine;
 
 namespace SaberTailor::Tabs::Scale{
 
-    QuestUI::IncrementSetting* length;
-    QuestUI::IncrementSetting* width;
-    UnityEngine::UI::Toggle* enableScaleSettings;
-    UnityEngine::UI::Toggle* scaleHitbox;
+    BSML::IncrementSetting* length;
+    BSML::IncrementSetting* width;
+    BSML::ToggleSetting* enableScaleSettings;
+    BSML::ToggleSetting* scaleHitbox;
 
     GameObject* CreateScaleSettings(Transform* parent){
         auto* container = CreateScrollableSettingsContainer(parent);
 
-        auto* text = CreateText(container->get_transform(), "Scale");
+        auto* text = CreateText(container->get_transform(), "Scale", {0, 0}, {0, 7});
         text->set_fontSize(6.0f);
         text->set_alignment(TMPro::TextAlignmentOptions::Center);
 
@@ -41,7 +41,7 @@ namespace SaberTailor::Tabs::Scale{
         });
         AddHoverHint(scaleHitbox->get_gameObject(), "Makes it so the actual saber hitbox matches the size of your scaled saber");
 
-        auto* hitboxOhNo = CreateText(container->get_transform(), "Enabling hitbox scaling will disable score submission.");
+        auto* hitboxOhNo = CreateText(container->get_transform(), "Enabling hitbox scaling will disable score submission.", {0, 0}, {0, 5});
         hitboxOhNo->set_fontSize(4.5f);
         hitboxOhNo->set_alignment(TMPro::TextAlignmentOptions::Center);
         hitboxOhNo->set_color(UnityEngine::Color::get_red());

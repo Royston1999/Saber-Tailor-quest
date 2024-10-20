@@ -1,14 +1,14 @@
 #pragma once
 
-#include "questui/shared/BeatSaberUI.hpp"
+#include "bsml/shared/BSML-Lite.hpp"
 
 namespace SaberTailor::Tabs::Trail{
     UnityEngine::GameObject* CreateTrailSettings(UnityEngine::Transform* parent);
 }
 namespace SaberTailor::Tabs::Trail{
-    extern QuestUI::IncrementSetting* duration;
-    extern QuestUI::IncrementSetting* whitestep;
-    extern UnityEngine::UI::Toggle* enableTrailSettings;
-    extern UnityEngine::UI::Toggle* enableSaberTrails;
-    extern QuestUI::IncrementSetting* granularity;
+    extern BSML::IncrementSetting* duration;
+    extern BSML::IncrementSetting* whitestep;
+    extern BSML::ToggleSetting* enableTrailSettings;
+    extern BSML::ToggleSetting* enableSaberTrails;
+    extern BSML::IncrementSetting* granularity;
 }

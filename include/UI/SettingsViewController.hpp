@@ -3,8 +3,7 @@
 #include "custom-types/shared/macros.hpp"
 #include "custom-types/shared/register.hpp"
 #include "custom-types/shared/coroutine.hpp"
-#include "questui/shared/BeatSaberUI.hpp"
-#include "questui/shared/QuestUI.hpp"
+#include "bsml/shared/BSML-Lite.hpp"
 
 DECLARE_CLASS_CODEGEN(SaberTailor::Views, SettingsViewController, HMUI::ViewController,
     
