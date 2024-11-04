@@ -103,7 +103,7 @@ jobs:
         generate_release_notes: true
         files: |
           ./build/${{ steps.libname.outputs.NAME }}
-          ./build/debug_${{ steps.libname.outputs.NAME }}
+          ./build/debug/${{ steps.libname.outputs.NAME }}
           ./${{ env.qmod_name }}_${{ github.event.inputs.version }}.qmod
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
