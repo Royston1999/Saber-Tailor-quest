@@ -6,7 +6,7 @@ on:
       version:
         description: 'tag name'
         required: true
-      release_msg:
+      bs_version:
         description: 'release title'
         required: true
   pull_request:
@@ -97,6 +97,7 @@ jobs:
       id: upload_file_release
       uses: softprops/action-gh-release@v0.1.15
       with:
+        name: ${{ github.event.inputs.bs_version }} 
         tag_name: ${{ github.event.inputs.version }}
         draft: true
         generate_release_notes: true

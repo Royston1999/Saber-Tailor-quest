@@ -125,9 +125,9 @@ MAKE_HOOK_MATCH(ControllerTransform, static_cast<bool(VRController::*)(ByRef<Pos
     SaberTailor::ApplicationMethod applicationMethod = GET_VALUE(offsetApplicationMethod);
     if (applicationMethod == SaberTailor::ApplicationMethod::Default) {
         self->____vrPlatformHelper->TryGetPoseOffsetForNode(self->____node, ByRef<Pose>(poseOffset));
-        if (GET_VALUE(isGripModEnabled) && !isRightHand) poseOffset = VRController::InvertControllerPose(controllerPose);
+        if (GET_VALUE(isGripModEnabled) && !isRightHand) poseOffset = VRController::InvertControllerPose(poseOffset.heldRef);
         poseOffset = VRController::AdjustPose(poseOffset.heldRef, controllerPose);
-        if (!GET_VALUE(isGripModEnabled) && !isRightHand) poseOffset = VRController::InvertControllerPose(controllerPose);
+        if (!GET_VALUE(isGripModEnabled) && !isRightHand) poseOffset = VRController::InvertControllerPose(poseOffset.heldRef);
         return true;
     }
     UnityW<Transform> anchor = self->get_viewAnchorTransform();
@@ -138,7 +138,6 @@ MAKE_HOOK_MATCH(ControllerTransform, static_cast<bool(VRController::*)(ByRef<Pos
         anchor->SetLocalPositionAndRotation(Vector3::get_zero(), Quaternion::get_identity());
         anchor->Rotate(controllerPose.rotation.get_eulerAngles());
         anchor->Translate(controllerPose.position);
-        
     }
     else if(applicationMethod == SaberTailor::ApplicationMethod::ElectroMethod) {
         if (!GET_VALUE(isGripModEnabled) && !isRightHand) controllerPose = VRController::InvertControllerPose(controllerPose);

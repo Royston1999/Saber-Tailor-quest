@@ -143,7 +143,7 @@ void ConfigHelper::CheckAndUpdateOldConfigVersion(std::string file, SaberTailor:
     config.configVersion = 6;
     LegacyConfig legacy = ReadFromFile<LegacyConfig>(file);
     if (legacy.overrideSettingsMethod.has_value()) { 
-        config.offsetApplicationMethod = legacy.overrideSettingsMethod.value() ? SaberTailor::ApplicationMethod::ElectroMethod : SaberTailor::ApplicationMethod::Default;
+        config.offsetApplicationMethod = legacy.overrideSettingsMethod.value() ? SaberTailor::ApplicationMethod::ElectroMethod : SaberTailor::ApplicationMethod::PreUnityUpdate;
     }
     writefile(file, CreateJSONString(config));
     ReadFromFile(file, SaberTailorMain::config.currentConfig);
