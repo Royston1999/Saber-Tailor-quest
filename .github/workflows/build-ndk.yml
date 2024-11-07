@@ -69,19 +69,32 @@ jobs:
       run: |
         pwsh -Command ./buildQMOD.ps1 ${{ env.qmod_name }}_${{ github.event.inputs.version }}
 
-    - name: Get Library Name
+    - name: Get Library Name and Build ID
       id: libname
       run: |
         cd ./build/
         pattern="lib${module_id}*.so"
         files=( $pattern )
         echo "NAME=${files[0]}" >> ${GITHUB_OUTPUT}
+        echo "BUILD_ID=$(readelf -n ${files[0]} | grep -Po "(?<=Build ID: )[0-9a-f]+")" >> ${GITHUB_OUTPUT}
+
+    - name: Calculate SHA-256 of the qmod file
+      id: qmodsha
+      run: |
+        echo "QMOD_SHA=$(sha256sum ./${{ env.qmod_name }}_${{ github.event.inputs.version }}.qmod | grep -Po "^[0-9a-f]+")" >> ${GITHUB_OUTPUT}
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: ${{ steps.libname.outputs.NAME }}
         path: ./build/${{ steps.libname.outputs.NAME }}
+        if-no-files-found: error
+
+    - name: Upload debug artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug_${{ steps.libname.outputs.NAME }}
+        path: ./build/debug/debug_${{ steps.libname.outputs.NAME }}
         if-no-files-found: error
 
     - name: Upload qmod artifact
@@ -101,6 +114,12 @@ jobs:
         tag_name: ${{ github.event.inputs.version }}
         draft: true
         generate_release_notes: true
+        body: |
+          
+          ### Build info
+        
+          SHA-256: ${{ steps.qmodsha.outputs.QMOD_SHA }}
+          Build ID: ${{ steps.libname.outputs.BUILD_ID }}
         files: |
           ./build/${{ steps.libname.outputs.NAME }}
           ./build/debug/debug_${{ steps.libname.outputs.NAME }}
