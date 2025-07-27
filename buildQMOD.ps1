@@ -1,6 +1,6 @@
 Param(
     [Parameter(Mandatory=$false)]
-    [String] $qmodName="",
+    [String] $qmodName="SaberTailor",
 
     [Parameter(Mandatory=$false)]
     [Switch] $help
