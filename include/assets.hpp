@@ -46,5 +46,6 @@ struct IncludedAsset {
 namespace IncludedAssets {
 
 	DECLARE_FILE(arrow_png)
+	DECLARE_FILE(import_export_modal_bsml)
 
 }

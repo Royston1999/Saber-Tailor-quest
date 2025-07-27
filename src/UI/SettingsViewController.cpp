@@ -46,7 +46,7 @@ UnityEngine::GameObject* CreateTextSegmentedControlObject(UnityEngine::Transform
     return gameObject;
 }
 
-HMUI::TextSegmentedControl* CreateSaberTailorTextSegmentedControl(UnityEngine::Transform* parent, UnityEngine::Vector2 anchoredPosition, UnityEngine::Vector2 sizeDelta, std::span<std::string_view> values, std::function<void(int)> onCellWithIdxClicked) {
+HMUI::TextSegmentedControl* CreateSaberTailorTextSegmentedControl(UnityEngine::Transform* parent, UnityEngine::Vector2 anchoredPosition, UnityEngine::Vector2 sizeDelta, std::span<const StringW> values, std::function<void(int)> onCellWithIdxClicked) {
     auto go = CreateTextSegmentedControlObject(parent);
     auto textSegmentedControl = go->GetComponent<HMUI::TextSegmentedControl*>();
     go->set_name("SaberTailorTextSegmentedControl");
@@ -54,10 +54,8 @@ HMUI::TextSegmentedControl* CreateSaberTailorTextSegmentedControl(UnityEngine::T
     rect->set_anchoredPosition(anchoredPosition);
     rect->set_sizeDelta(sizeDelta);
 
-    auto texts = ListW<StringW>::New();
-    texts->EnsureCapacity(values.size());
-    for (const auto& text : values) texts->Add(text);
-    textSegmentedControl->SetTexts(*texts);
+    auto texts = ListW<StringW>::New(values);
+    textSegmentedControl->SetTexts(*texts, nullptr);
 
     textSegmentedControl->add_didSelectCellEvent(custom_types::MakeDelegate<System::Action_2<UnityW<HMUI::SegmentedControl>, int>*>(
         std::function<void(HMUI::SegmentedControl*, int)>([onCellWithIdxClicked](HMUI::SegmentedControl* _, int idx) { onCellWithIdxClicked(idx); })
@@ -65,10 +63,9 @@ HMUI::TextSegmentedControl* CreateSaberTailorTextSegmentedControl(UnityEngine::T
     return textSegmentedControl;
 }
 
-static std::vector<std::string_view> tabNames = {"Main Settings", "Helper", "Scale", "Trail", "Profiles", "Experimental"};
-
 Coroutine SaberTailor::Views::SettingsViewController::CreateTabs(){
-    
+    std::vector<StringW> tabNames = {"Main Settings", "Helper", "Scale", "Trail", "Profiles", "Experimental"};
+
     CreateSaberTailorTextSegmentedControl(get_transform(), {0, 0}, {-10, 7}, tabNames, [&](int index){
         tabs[selectedTab]->SetActive(false);
         tabs[index]->SetActive(true);

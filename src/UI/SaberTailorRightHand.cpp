@@ -55,32 +55,27 @@ custom_types::Helpers::Coroutine SaberTailor::Views::SaberTailorRightHand::Creat
     somebuttons->set_childControlWidth(true); somebuttons->set_childForceExpandWidth(false); somebuttons->set_childForceExpandHeight(false);
     somebuttons->set_childControlHeight(true);
     somebuttons->set_childAlignment(TextAnchor::MiddleCenter);
-    auto* mirrorLeft = CreateUIButton(somebuttons->get_transform(), "Mirror to Left", [](){
+    auto* mirrorLeft = CreateUIButton(somebuttons->get_transform(), "Mirror to Left Hand", [](){
         TransferHelper::mirrorToLeft();
         SaberTailor::UI::LeftHand::UpdateSliderValues();
     });
     AddHoverHint(mirrorLeft->get_gameObject(), "Copies the position and rotation values into the left hand");
-    mirrorLeft->get_gameObject()->GetComponentInChildren<LayoutElement*>()->set_preferredWidth(44.5f);
-    auto* exportButton = CreateUIButton(somebuttons->get_transform(), "Export to Base Game", [](){
-        TransferHelper::exportToBaseGame(1);
-        getPlatformHelper()->RefreshControllersReference();
-    });
-    AddHoverHint(exportButton->get_gameObject(), "Takes the current right hand settings and copies them into the base game settings");
-    exportButton->get_gameObject()->GetComponentInChildren<LayoutElement*>()->set_preferredWidth(44.5f);
+    mirrorLeft->get_gameObject()->GetComponentInChildren<LayoutElement*>()->set_preferredWidth(90.0f);
+
     auto posFormat = [](float val) { return IncrementHelper::formatSliderPosText(val); };
     auto rotFormat = [](float val) { return fmt::format("{0:.0f} deg", val); };
 
-    posX = SaberTailorSuperSlider::CreateSuperSlider(rightsabercontainer->get_transform(), "Position X", -100, 100, GET_VALUE(saberPosIncrement), GET_VALUE(rightHandPosition).x, posFormat, [](float value){
+    posX = SaberTailorSuperSlider::CreateSuperSlider(rightsabercontainer->get_transform(), "Position X", -500, 500, GET_VALUE(saberPosIncrement), GET_VALUE(rightHandPosition).x, posFormat, [](float value){
         SET_VALUE(rightHandPosition.x, (int)std::round(value));
         getPlatformHelper()->RefreshControllersReference();
     });
     co_yield nullptr;
-    posY = SaberTailorSuperSlider::CreateSuperSlider(rightsabercontainer->get_transform(), "Position Y", -100, 100, GET_VALUE(saberPosIncrement), GET_VALUE(rightHandPosition).y, posFormat, [](float value){
+    posY = SaberTailorSuperSlider::CreateSuperSlider(rightsabercontainer->get_transform(), "Position Y", -500, 500, GET_VALUE(saberPosIncrement), GET_VALUE(rightHandPosition).y, posFormat, [](float value){
         SET_VALUE(rightHandPosition.y, (int)std::round(value));
         getPlatformHelper()->RefreshControllersReference();
     });
     co_yield nullptr;
-    posZ = SaberTailorSuperSlider::CreateSuperSlider(rightsabercontainer->get_transform(), "Position Z", -100, 100, GET_VALUE(saberPosIncrement), GET_VALUE(rightHandPosition).z, posFormat, [](float value){
+    posZ = SaberTailorSuperSlider::CreateSuperSlider(rightsabercontainer->get_transform(), "Position Z", -500, 500, GET_VALUE(saberPosIncrement), GET_VALUE(rightHandPosition).z, posFormat, [](float value){
         SET_VALUE(rightHandPosition.z, (int)std::round(value));
         getPlatformHelper()->RefreshControllersReference();
     });

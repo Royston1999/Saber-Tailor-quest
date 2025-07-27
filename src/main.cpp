@@ -18,7 +18,7 @@
 #include "GlobalNamespace/SaberModelController.hpp"
 #include "GlobalNamespace/SaberTrailRenderer.hpp"
 #include "UnityEngine/Mesh.hpp"
-#include "bs-utils/shared/utils.hpp"
+#include "metacore/shared/game.hpp"
 #include "bsml/shared/BSML.hpp"
 #include "UnityEngine/SceneManagement/Scene.hpp"
 
@@ -45,10 +45,14 @@
 #include "GlobalNamespace/StandardLevelScenesTransitionSetupDataSO.hpp"
 #include "GlobalNamespace/OVRPlugin.hpp"
 
+#include "SaberTailorControllerTransformOffset.hpp"
+
 #include "System/Nullable_1.hpp"
 
-#include "BeatSaber/PerformancePresets/PerformancePreset.hpp"
-
+#include "bsml/shared/Helpers/getters.hpp"
+#include "bsml/shared/Helpers/creation.hpp"
+#include "GlobalNamespace/SettingsFlowCoordinator.hpp"
+#include "GlobalNamespace/MainSettingsMenuViewController.hpp"
 
 using namespace UnityEngine;
 using namespace GlobalNamespace;
@@ -94,10 +98,16 @@ void SaberTailorMain::loadConfig() {
 }
 
 IVRPlatformHelper* getPlatformHelper() {
-    static SafePtrUnity<ControllersTransformSettingsViewController> helper;
-    if (helper) return helper->____vrPlatformHelper;
-    helper = Resources::FindObjectsOfTypeAll<ControllersTransformSettingsViewController*>().front_or_default();
-    return helper->____vrPlatformHelper;
+    return BSML::Helpers::GetIVRPlatformHelper();
+}
+
+SaberTailor::SaberTailorControllerTransformOffset* getSaberTailorOffset() {
+    static SafePtrUnity<SaberTailor::SaberTailorControllerTransformOffset> offset;
+    if (offset) return offset.ptr();
+    auto off = GameObject::New_ctor("SaberTailorControllerTransformOffset")->AddComponent<SaberTailor::SaberTailorControllerTransformOffset*>();
+    Object::DontDestroyOnLoad(off);
+    offset = off;
+    return offset.ptr();
 }
 
 static Vector3 operator/(Vector3 a, float_t b) { return Vector3::op_Division(a,b); }
@@ -106,15 +116,29 @@ static void operator*=(Quaternion& a, Quaternion b) { a = Quaternion::op_Multipl
 
 MAKE_HOOK_MATCH(ControllerTransform, static_cast<bool(VRController::*)(ByRef<Pose>)>(&VRController::TryGetControllerOffset), bool, VRController* self, ByRef<Pose> poseOffset) {
     
-    if (!(GET_VALUE(isGripModEnabled) || GET_VALUE(offsetApplicationMethod) != SaberTailor::ApplicationMethod::Default || SaberTailorMain::config.isAprilFools)) return ControllerTransform(self, poseOffset);
+    if (!(GET_VALUE(isGripModEnabled) || GET_VALUE(offsetApplicationMethod) == SaberTailor::ApplicationMethod::ElectroMethod || SaberTailorMain::config.isAprilFools)) return ControllerTransform(self, poseOffset);
 
-    Pose controllerPose = self->____transformOffset ? self->____transformOffset->get_poseOffset() : Pose();
+    GlobalNamespace::VRControllerTransformOffset* controllerOffset = GET_VALUE(isGripModEnabled) ? getSaberTailorOffset() : self->____transformOffset;
+    if (!controllerOffset) controllerOffset = getSaberTailorOffset();
+
     bool isRightHand = self->get_node() == XR::XRNode::RightHand;
-
-    if (GET_VALUE(isGripModEnabled)) {
-        if (isRightHand) controllerPose = {Vector3(GET_VALUE(rightHandPosition))/1000, Quaternion::Euler(Vector3(GET_VALUE(rightHandRotation)))};
-        else controllerPose = {Vector3(GET_VALUE(leftHandPosition))/1000, Quaternion::Euler(Vector3(GET_VALUE(leftHandRotation)))};
+    Pose controllerPose = isRightHand ? 
+        Pose(controllerOffset->get_rightPositionOffset(), Quaternion::Euler(controllerOffset->get_rightRotationOffset())) : 
+        Pose(controllerOffset->get_leftPositionOffset(), Quaternion::Euler(controllerOffset->get_leftRotationOffset()));
+    
+    SaberTailor::ApplicationMethod applicationMethod = GET_VALUE(offsetApplicationMethod);
+    UnityW<Transform> anchor = self->get_viewAnchorTransform();
+    if (applicationMethod != SaberTailor::ApplicationMethod::ElectroMethod) {
+        VRController::TryGetControllerOffset(self->____vrPlatformHelper, controllerOffset, self->____node, ByRef(controllerPose));
     }
+    else if(applicationMethod == SaberTailor::ApplicationMethod::ElectroMethod) {
+        anchor->SetLocalPositionAndRotation(Vector3::get_zero(), Quaternion::get_identity());
+        anchor->Rotate({0, 0, controllerPose.rotation.get_eulerAngles().z});
+        anchor->Translate(controllerPose.position);
+        anchor->Rotate({controllerPose.rotation.get_eulerAngles().x, controllerPose.rotation.get_eulerAngles().y, 0});
+        controllerPose = Pose(anchor->get_localPosition(), anchor->get_localRotation());
+    }
+
     if (SaberTailorMain::config.isAprilFools) {
         if (self->get_transform()->get_name() == "RightHand")
             controllerPose.rotation *= Quaternion::Euler(randomSaber.rightXRot.first, randomSaber.rightYRot.first, randomSaber.rightZRot.first);
@@ -122,34 +146,8 @@ MAKE_HOOK_MATCH(ControllerTransform, static_cast<bool(VRController::*)(ByRef<Pos
             controllerPose.rotation *= Quaternion::Euler(randomSaber.leftXRot.first, randomSaber.leftYRot.first, randomSaber.leftZRot.first);
         controllerPose.position.z += randomSaber.zPos;
     }
-    SaberTailor::ApplicationMethod applicationMethod = GET_VALUE(offsetApplicationMethod);
-    if (applicationMethod == SaberTailor::ApplicationMethod::Default) {
-        self->____vrPlatformHelper->TryGetPoseOffsetForNode(self->____node, ByRef<Pose>(poseOffset));
-        if (GET_VALUE(isGripModEnabled) && !isRightHand) poseOffset = VRController::InvertControllerPose(poseOffset.heldRef);
-        poseOffset = VRController::AdjustPose(poseOffset.heldRef, controllerPose);
-        if (!GET_VALUE(isGripModEnabled) && !isRightHand) poseOffset = VRController::InvertControllerPose(poseOffset.heldRef);
-        return true;
-    }
-    UnityW<Transform> anchor = self->get_viewAnchorTransform();
-    if (applicationMethod == SaberTailor::ApplicationMethod::PreUnityUpdate) {
-        if (!GET_VALUE(isGripModEnabled) && !isRightHand) controllerPose = VRController::InvertControllerPose(controllerPose);
-        controllerPose.position += {0.0f, 0.0f, 0.055f};
-        controllerPose.rotation *= Quaternion::Euler({-40.0f, 0.0f, 0.0f});
-        anchor->SetLocalPositionAndRotation(Vector3::get_zero(), Quaternion::get_identity());
-        anchor->Rotate(controllerPose.rotation.get_eulerAngles());
-        anchor->Translate(controllerPose.position);
-    }
-    else if(applicationMethod == SaberTailor::ApplicationMethod::ElectroMethod) {
-        if (!GET_VALUE(isGripModEnabled) && !isRightHand) controllerPose = VRController::InvertControllerPose(controllerPose);
-        anchor->SetLocalPositionAndRotation(Vector3::get_zero(), Quaternion::get_identity());
-        anchor->Rotate({0, 0, controllerPose.rotation.get_eulerAngles().z});
-        anchor->Translate(controllerPose.position);
-        anchor->Rotate({controllerPose.rotation.get_eulerAngles().x, controllerPose.rotation.get_eulerAngles().y, 0});
-    }
-    if (self->___anchorUpdateEvent) {
-        self->___anchorUpdateEvent->Invoke(self, {anchor->get_localPosition(), anchor->get_localRotation()});
-    }
-    return false;
+    *poseOffset = controllerPose;
+    return true;
 }
 
 MAKE_HOOK_MATCH(AxisOnStart, &MainMenuViewController::DidActivate, void, MainMenuViewController* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling)
@@ -162,6 +160,9 @@ MAKE_HOOK_MATCH(AxisOnStart, &MainMenuViewController::DidActivate, void, MainMen
         for (auto& controller : Resources::FindObjectsOfTypeAll<VRController*>()) AxisDisplay::CreateAxes(controller->get_viewAnchorTransform());
     }
     SaberTailor::SaberTailorSuperSlider::Init();
+    
+    // auto mainSettings = BSML::Helpers::GetMainFlowCoordinator()->____settingsFlowCoordinator->____mainSettingsMenuViewController;
+    // mainSettings->____settingsSubMenuInfos[3]->____viewController = BSML::Helpers::CreateViewController<SaberTailor::Views::SettingsViewController*>();
 }
 
 MAKE_HOOK_MATCH(SaberModelContainer_Start, &SaberModelContainer::Start, void, SaberModelContainer* self) {
@@ -185,11 +186,11 @@ MAKE_HOOK_MATCH(SaberModelContainer_Start, &SaberModelContainer::Start, void, Sa
                 // the trails are bound to this and idk how to fix it when saber length is adjusted :pain:
                 saber->____saberBladeBottomTransform->set_position(saberBottom);
                 saber->____saberBladeTopTransform->set_position(saberTop);
-                bs_utils::Submission::enable(modInfo);
+                MetaCore::Game::SetScoreSubmission(modInfo.id, true);
             }
-            else bs_utils::Submission::disable(modInfo); 
+            else MetaCore::Game::SetScoreSubmission(modInfo.id, false);
         }
-        else bs_utils::Submission::enable(modInfo);
+        else MetaCore::Game::SetScoreSubmission(modInfo.id, true);
         if (SaberTailorMain::config.currentConfig.isTrailModEnabled){
             auto trail = self->get_transform()->GetComponentInChildren<SaberModelController*>()->____saberTrail;
             trail->____trailDuration = (float)SaberTailorMain::config.currentConfig.trailDuration/1000.0f;
@@ -211,9 +212,33 @@ MAKE_HOOK_MATCH(ReplayCheck, &StandardLevelScenesTransitionSetupDataSO::InitAndS
 
 // April Fools Stuff
 
-MAKE_HOOK_MATCH(GameplayCoreSceneSetupData_ctor, static_cast<void(GameplayCoreSceneSetupData::*)(ByRef<BeatmapKey>, BeatmapLevel*, GameplayModifiers*, PlayerSpecificSettings*, PracticeSettings*, bool, EnvironmentInfoSO*, ColorScheme*, BeatSaber::PerformancePresets::PerformancePreset*, AudioClipAsyncLoader*, BeatmapDataLoader*, bool, bool, System::Nullable_1<RecordingToolManager::SetupData>)>(&GameplayCoreSceneSetupData::_ctor), void, GameplayCoreSceneSetupData* self, ByRef<BeatmapKey> beatmapKey, BeatmapLevel* beatmapLevel, GameplayModifiers* gameplayModifiers, PlayerSpecificSettings* playerSpecificSettings, PracticeSettings* practiceSettings, bool useTestNoteCutSoundEffects, EnvironmentInfoSO* environmentInfo, ColorScheme* colorScheme, BeatSaber::PerformancePresets::PerformancePreset* performancePreset, AudioClipAsyncLoader* audioClipAsyncLoader, BeatmapDataLoader* beatmapDataLoader, bool enableBeatmapDataCaching, bool allowNullBeatmapLevelData, System::Nullable_1<RecordingToolManager::SetupData> recordingToolData)
-{
-    GameplayCoreSceneSetupData_ctor(self, beatmapKey, beatmapLevel, gameplayModifiers, playerSpecificSettings, practiceSettings, useTestNoteCutSoundEffects, environmentInfo, colorScheme, performancePreset, audioClipAsyncLoader, beatmapDataLoader, enableBeatmapDataCaching, allowNullBeatmapLevelData, recordingToolData);
+MAKE_HOOK_MATCH(GameplayCoreSceneSetupData_ctor,
+    static_cast<void(GameplayCoreSceneSetupData::*)
+    (
+        ByRef<BeatmapKey>, BeatmapLevel*, GameplayModifiers*,
+        PlayerSpecificSettings*, PracticeSettings*, bool,
+        EnvironmentInfoSO*, EnvironmentInfoSO*, ColorScheme*,
+        SettingsManager*, AudioClipAsyncLoader*, BeatmapDataLoader*,
+        BeatmapLevelsEntitlementModel*, bool, bool,
+        EnvironmentsListModel*, System::Nullable_1<RecordingToolManager_SetupData>
+    )>(&GameplayCoreSceneSetupData::_ctor),
+    void,
+    GameplayCoreSceneSetupData* self,
+    ByRef<BeatmapKey> beatmapKey, BeatmapLevel* beatmapLevel, GameplayModifiers* gameplayModifiers,
+    PlayerSpecificSettings* playerSpecificSettings, PracticeSettings* practiceSettings, bool useTestNoteCutSoundEffects,
+    EnvironmentInfoSO* targetEnvironmentInfo, EnvironmentInfoSO* originalEnvironmentInfo, ColorScheme* colorScheme,
+    SettingsManager* settingsManager, AudioClipAsyncLoader* audioClipAsyncLoader, BeatmapDataLoader* beatmapDataLoader,
+    BeatmapLevelsEntitlementModel* beatmapLevelsEntitlementModel, bool enableBeatmapDataCaching, bool allowNullBeatmapLevelData,
+    EnvironmentsListModel* environmentsListModel, System::Nullable_1<RecordingToolManager_SetupData> recordingToolData
+) {
+    GameplayCoreSceneSetupData_ctor(
+        self, beatmapKey, beatmapLevel, gameplayModifiers,
+        playerSpecificSettings, practiceSettings, useTestNoteCutSoundEffects,
+        targetEnvironmentInfo, originalEnvironmentInfo, colorScheme,
+        settingsManager, audioClipAsyncLoader, beatmapDataLoader,
+        beatmapLevelsEntitlementModel, enableBeatmapDataCaching,
+        allowNullBeatmapLevelData, environmentsListModel, recordingToolData
+    );
     if (SaberTailorMain::config.isAprilFools){
         randomSaber.zPos -= 0.003;
         AprilFools::generateRandomSaberMovementsForSession();

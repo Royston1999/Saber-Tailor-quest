@@ -1,8 +1,6 @@
 #include "SaberTailorHelper.hpp"
 #include "GlobalNamespace/MainSystemInit.hpp"
-#include "BeatSaber/GameSettings/MainSettings.hpp"
-#include "BeatSaber/GameSettings/Controllers.hpp"
-#include "BeatSaber/GameSettings/MainSettingsHandler.hpp"
+#include "BeatSaber/GameSettings/GameSettings.hpp"
 #include "GlobalNamespace/QuestAppInit.hpp"
 #include "GlobalNamespace/SettingsApplicatorSO.hpp"
 #include "Utils/EasyDelegate.hpp"
@@ -70,38 +68,38 @@ namespace TransferHelper{
         SET_VALUE(rightHandRotation, Vector3(lRot.x, -lRot.y, -lRot.z));
     }
     void exportToBaseGame(int hand){
-        auto appInit = Resources::FindObjectsOfTypeAll<QuestAppInit*>().front_or_default();
-        auto settings = appInit->____mainSystemInit->____mainSettingsHandler;
-        auto controllers = settings->get_instance()->get_controllerSettings();
-        // from left hand settings
-        if (hand == 0){
-            Vector3 leftHandPos = GET_VALUE(leftHandPosition) / 1000;
-            Vector3 leftHandRot = GET_VALUE(leftHandRotation);
-            controllers->set_positionOffset(Vector3(-leftHandPos.x, leftHandPos.y, leftHandPos.z));
-            controllers->set_rotationOffset(Vector3(leftHandRot.x, -leftHandRot.y, -leftHandRot.z));
-        }
-        // from right hand settings 
-        else if (hand == 1){
-            controllers->set_positionOffset(Vector3(GET_VALUE(rightHandPosition))/1000);
-            controllers->set_rotationOffset(Vector3(GET_VALUE(rightHandRotation)));
-        }
-        appInit->____settingsApplicator->ApplyMainSettings(settings->get_instance());
-        auto task = settings->SaveAsync(true);
-        BSML::MainThreadScheduler::ScheduleUntil([task]() { return task->get_IsCompleted(); }, [settings](){ settings->LoadAsync(); });
+        // auto appInit = Resources::FindObjectsOfTypeAll<QuestAppInit*>().front_or_default();
+        // auto settings = appInit->____mainSystemInit->____mainSettingsHandler;
+        // auto controllers = settings->get_instance()->get_controllerSettings();
+        // // from left hand settings
+        // if (hand == 0){
+        //     Vector3 leftHandPos = GET_VALUE(leftHandPosition) / 1000;
+        //     Vector3 leftHandRot = GET_VALUE(leftHandRotation);
+        //     controllers->set_positionOffset(Vector3(-leftHandPos.x, leftHandPos.y, leftHandPos.z));
+        //     controllers->set_rotationOffset(Vector3(leftHandRot.x, -leftHandRot.y, -leftHandRot.z));
+        // }
+        // // from right hand settings 
+        // else if (hand == 1){
+        //     controllers->set_positionOffset(Vector3(GET_VALUE(rightHandPosition))/1000);
+        //     controllers->set_rotationOffset(Vector3(GET_VALUE(rightHandRotation)));
+        // }
+        // appInit->____settingsApplicator->ApplyMainSettings(settings->get_instance());
+        // auto task = settings->SaveAsync(true);
+        // BSML::MainThreadScheduler::ScheduleUntil([task]() { return task->get_IsCompleted(); }, [settings](){ settings->LoadAsync(); });
     }
     void importFromBaseGame(int hand){
-        auto controllers = Resources::FindObjectsOfTypeAll<MainSystemInit*>().front_or_default()->____mainSettingsHandler->get_instance()->get_controllerSettings();
+    //     auto controllers = Resources::FindObjectsOfTypeAll<MainSystemInit*>().front_or_default()->____mainSettingsHandler->get_instance()->get_controllerSettings();
 
-        auto lPos = controllers->get_positionOffset() * 1000;
-        auto lRot = controllers->get_rotationOffset();
-        if (hand == 0){
-            SET_VALUE(leftHandPosition, Vector3(-lPos.x, lPos.y, lPos.z));
-            SET_VALUE(leftHandRotation, Vector3(lRot.x, -lRot.y, -lRot.z));
-        }
-        if (hand == 1){
-            SET_VALUE(rightHandPosition, lPos);
-            SET_VALUE(rightHandRotation, lRot);
-        }
+    //     auto lPos = controllers->get_positionOffset() * 1000;
+    //     auto lRot = controllers->get_rotationOffset();
+    //     if (hand == 0){
+    //         SET_VALUE(leftHandPosition, Vector3(-lPos.x, lPos.y, lPos.z));
+    //         SET_VALUE(leftHandRotation, Vector3(lRot.x, -lRot.y, -lRot.z));
+    //     }
+    //     if (hand == 1){
+    //         SET_VALUE(rightHandPosition, lPos);
+    //         SET_VALUE(rightHandRotation, lRot);
+    //     }
     }
 }
 

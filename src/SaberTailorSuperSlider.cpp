@@ -109,6 +109,22 @@ namespace SaberTailor {
         })->get_transform()->get_parent()->get_gameObject();
 
         GameObject* containerGo = Object::Instantiate(baseSliderPrefab).ptr();
+
+        auto rectTransform = containerGo->get_transform().cast<RectTransform>();
+        rectTransform->set_anchoredPosition({0, 0});
+        Object::Destroy(rectTransform->Find("SliderLeft")->get_gameObject());
+        Object::Destroy(containerGo->GetComponent<CanvasGroup*>());
+
+        auto titleTransform = containerGo->get_transform()->Find("Title").cast<RectTransform>();
+        titleTransform->set_anchorMin({0, 0});
+        titleTransform->set_anchorMax({0, 0});
+        titleTransform->set_offsetMin({0, 0});
+        titleTransform->set_offsetMax({-52, 0});
+        TMPro::TextMeshProUGUI* text = titleTransform->get_gameObject()->GetComponent<TMPro::TextMeshProUGUI*>();
+        text->set_alignment(::TMPro::TextAlignmentOptions::BottomLeft);
+        text->set_enableWordWrapping(false);
+        text->set_overflowMode(::TMPro::TextOverflowModes::Overflow);
+
         containerGo->set_name("SaberTailorSuperSliderPrefab");
         Object::Destroy(containerGo->get_transform()->GetComponentInChildren<BGLib::Polyglot::LocalizedTextMeshProUGUI*>());
         CustomFormatRangeValuesSlider* slider = containerGo->get_transform()->GetComponentInChildren<CustomFormatRangeValuesSlider*>();
@@ -138,7 +154,7 @@ namespace SaberTailor {
         superSlider->superDecButton = Object::Instantiate(superSlider->____decButton, superSlider->get_transform());
 
         superSlider->superIncButton->get_transform()->set_localPosition(Vector3::op_Addition(superSlider->superIncButton->get_transform()->get_localPosition(), Vector3(6.65f, 0.0f, 0.0f)));
-        superSlider->superDecButton->get_transform()->set_localPosition(Vector3::op_Addition(superSlider->superDecButton->get_transform()->get_localPosition(), Vector3(-6.65f, 0.0f, 0.0f)));
+        superSlider->superDecButton->get_transform()->set_localPosition(Vector3::op_Addition(superSlider->superDecButton->get_transform()->get_localPosition(), Vector3(-7.65f, 0.0f, 0.0f)));
         
         containerGo->GetComponent<LayoutElement*>()->set_preferredWidth(90.0f);
 

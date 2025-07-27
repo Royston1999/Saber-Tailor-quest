@@ -7,15 +7,15 @@
 #include "config-utils/shared/config-utils.hpp"
 #include "rapidjson-macros/shared/macros.hpp"
 
-DECLARE_CONFIG(MainConfig, 
+DECLARE_CONFIG(MainConfig) {
     CONFIG_VALUE(currentConfig, std::string, "currentConfig", "Default");
-)
+};
 
 namespace SaberTailor {
 
 static inline bool operator==(const UnityEngine::Vector3& one, const UnityEngine::Vector3& two) { return UnityEngine::Vector3::op_Equality(one, two); }
 
-DECLARE_JSON_CLASS(Vector3,
+DECLARE_JSON_STRUCT(Vector3) {
     NAMED_VALUE_DEFAULT(int, x, 0, "x");
     NAMED_VALUE_DEFAULT(int, y, 0, "y");
     NAMED_VALUE_DEFAULT(int, z, 0, "z");
@@ -25,7 +25,7 @@ DECLARE_JSON_CLASS(Vector3,
     )
     Vector3() = default;
     Vector3(int x1, int y1, int z1) : x(x1), y(y1), z(z1) {}
-)
+};
 
 enum class ApplicationMethod {
     Default,
@@ -33,7 +33,7 @@ enum class ApplicationMethod {
     ElectroMethod
 };
 
-DECLARE_JSON_CLASS(SaberTailorProfileConfig,
+DECLARE_JSON_STRUCT(SaberTailorProfileConfig) {
 
     NAMED_VALUE_DEFAULT(int, configVersion, 6, "ConfigVersion");
     NAMED_VALUE_DEFAULT(bool, isSaberScaleModEnabled, false, "IsSaberScaleModEnabled");
@@ -61,14 +61,14 @@ DECLARE_JSON_CLASS(SaberTailorProfileConfig,
     NAMED_VALUE_DEFAULT(std::string, saberPosDisplayUnit, "cm", "SaberPosDisplayUnit");
     NAMED_VALUE_DEFAULT(bool, axisEnabled, false, "axisEnabled");
     private:
-    SERIALIZE_ACTION(ApplicationMethodSerialise,
-        const_cast<SelfType*>(self)->offsetApplicationMethodInternal = (int)self->offsetApplicationMethod;
-    );
+    SERIALIZE_FUNCTION(ApplicationMethodSerialise) {
+        const_cast<SelfType*>(this)->offsetApplicationMethodInternal = (int)this->offsetApplicationMethod;
+    }
     NAMED_VALUE_DEFAULT(int, offsetApplicationMethodInternal, 0, "offsetApplicationMethod");
-    DESERIALIZE_ACTION(ApplicationMethodDeserialise,
-        if(self->offsetApplicationMethodInternal > 2 || self->offsetApplicationMethodInternal < 0) self->offsetApplicationMethod = ApplicationMethod::Default;
-        else self->offsetApplicationMethod = (ApplicationMethod)self->offsetApplicationMethodInternal;
-    );
+    DESERIALIZE_FUNCTION(ApplicationMethodDeserialise) {
+        if(this->offsetApplicationMethodInternal > 2 || this->offsetApplicationMethodInternal < 0) this->offsetApplicationMethod = ApplicationMethod::Default;
+        else this->offsetApplicationMethod = (ApplicationMethod)this->offsetApplicationMethodInternal;
+    }
     public:
     NAMED_VALUE_DEFAULT(bool, mirrorZRot, false, "mirrorZRot");
     NAMED_VALUE_DEFAULT(bool, axisInReplay, false, "axisInReplay");
@@ -79,7 +79,7 @@ DECLARE_JSON_CLASS(SaberTailorProfileConfig,
         UnityEngine::Vector3 currentLeftHandRotation;
         UnityEngine::Vector3 currentRightHandPosition;
         UnityEngine::Vector3 currentRightHandRotation;
-)
+};
 }
 
 #define SET_VALUE(field, value) \
@@ -109,6 +109,6 @@ public:
     static std::string toLower(std::string s);
     static std::string GetDefaultConfigName();
 private:
-    template<JSONClassDerived T>
+    template<JSONStruct T>
     static std::string CreateJSONString(const T& toSerialize);
 };

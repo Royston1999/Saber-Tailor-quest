@@ -5,7 +5,7 @@
   "info": {
     "name": "Saber Tailor",
     "id": "sabertailor",
-    "version": "2.1.1",
+    "version": "2.1.2",
     "url": null,
     "additionalData": {
       "overrideSoName": "libsabertailor.so"
@@ -15,43 +15,50 @@
     "scripts": {},
     "qmodIncludeDirs": [],
     "qmodIncludeFiles": [],
-    "qmodOutput": null
+    "qmodOutput": null,
+    "ndk": "^27.3.13750724"
   },
   "dependencies": [
     {
       "id": "beatsaber-hook",
-      "versionRange": "^5.1.9",
-      "additionalData": {
-        "extraFiles": [
-          "src/inline-hook"
-        ]
-      }
+      "versionRange": "^6.4.2",
+      "additionalData": {}
     },
     {
       "id": "scotland2",
-      "versionRange": "^0.1.4",
+      "versionRange": "^0.1.6",
       "additionalData": {
         "includeQmod": false
       }
     },
     {
       "id": "bs-cordl",
-      "versionRange": "3700.*",
+      "versionRange": "^4008.*",
       "additionalData": {}
     },
     {
       "id": "custom-types",
-      "versionRange": "^0.17.0",
+      "versionRange": "^0.18.3",
       "additionalData": {}
     },
     {
       "id": "config-utils",
-      "versionRange": "^1.4.2",
+      "versionRange": "^2.0.3",
       "additionalData": {}
     },
     {
       "id": "bsml",
-      "versionRange": "^0.4.24",
+      "versionRange": "^0.4.55",
+      "additionalData": {}
+    },
+    {
+      "id": "paper2_scotland2",
+      "versionRange": "^4.6.4",
+      "additionalData": {}
+    },
+    {
+      "id": "lapiz",
+      "versionRange": "^0.2.23",
       "additionalData": {}
     },
     {
@@ -60,18 +67,8 @@
       "additionalData": {}
     },
     {
-      "id": "paper",
-      "versionRange": "^3.6.3",
-      "additionalData": {}
-    },
-    {
-      "id": "rapidjson-macros",
-      "versionRange": "^1.2.1",
-      "additionalData": {}
-    },
-    {
-      "id": "bs-utils",
-      "versionRange": "^0.8.2",
+      "id": "metacore",
+      "versionRange": "^1.4.0",
       "additionalData": {}
     }
   ]

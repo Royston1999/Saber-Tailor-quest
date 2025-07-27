@@ -3,9 +3,11 @@
 #include "main.hpp"
 #include "UI/SaberTailorLeftHand.hpp"
 #include "UI/SaberTailorRightHand.hpp"
+#include "UI/ImportExportModal.hpp"
 
 using namespace BSML::Lite;
 using namespace UnityEngine;
+using namespace UnityEngine::UI;
 
 namespace SaberTailor::Tabs::MainSettings{
 
@@ -15,6 +17,7 @@ namespace SaberTailor::Tabs::MainSettings{
     BSML::ToggleSetting* enableBaseGameAdjustment;
     BSML::DropdownListSetting* incrementUnits;
     BSML::DropdownListSetting* displayUnits;
+    SafePtr<UI::ImportExportModal> importExportModal;
 
     void updatePosIncrements(int inc){
         SaberTailor::UI::LeftHand::posX->increment = inc;
@@ -97,13 +100,22 @@ namespace SaberTailor::Tabs::MainSettings{
             SaberTailorMain::config.isAprilFools = !value;
         } )->get_gameObject(), "not sorry LMAO");
 
-        AddHoverHint(CreateUIButton(container->get_transform(), "Import Base Game Settings", Vector2(0, 0), {45.0f, 0.0f}, [](){
-            TransferHelper::importFromBaseGame(0);
-            TransferHelper::importFromBaseGame(1);
-            SaberTailor::UI::RightHand::UpdateSliderValues();
-            SaberTailor::UI::LeftHand::UpdateSliderValues();
-        })->get_gameObject(), "Copies the current base game controller settings values into the currently loaded config");
-        
+        importExportModal = UI::ImportExportModal::New_ctor(container->get_transform());
+
+        HorizontalLayoutGroup* somebuttons = CreateHorizontalLayoutGroup(container->get_transform());
+        somebuttons->set_childControlWidth(true); somebuttons->set_childForceExpandWidth(false); somebuttons->set_childForceExpandHeight(false);
+        somebuttons->set_childControlHeight(true);
+        somebuttons->set_childAlignment(TextAnchor::MiddleCenter);
+        auto* importButton = CreateUIButton(somebuttons->get_transform(), "Import from Base Game", [](){
+            importExportModal->Show(true);
+        });
+        AddHoverHint(importButton->get_gameObject(), "Choose a base game controller settings profile to import into the current saber tailor profile");
+        importButton->get_gameObject()->GetComponentInChildren<LayoutElement*>()->set_preferredWidth(44.5f);
+        auto* exportButton = CreateUIButton(somebuttons->get_transform(), "Export to Base Game", [](){
+            importExportModal->Show(false);
+        });
+        AddHoverHint(exportButton->get_gameObject(), "Choose a base game controller settings profile to export the current saber tailor profile into");
+        exportButton->get_gameObject()->GetComponentInChildren<LayoutElement*>()->set_preferredWidth(44.5f);
 
         IncrementHelper::SetIncrementText(saberPosIncrement, std::to_string(GET_VALUE(saberPosIncValue)) + " " + GET_VALUE(saberPosIncUnit));
         IncrementHelper::SetIncrementText(saberRotIncrement, std::to_string(GET_VALUE(saberRotIncrement)) + " deg");

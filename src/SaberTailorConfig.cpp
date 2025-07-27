@@ -99,11 +99,11 @@ void ConfigHelper::WriteToConfigFile(std::string fileName, bool reloadConfig){
 }
 
 
-template<JSONClassDerived T>
+template<JSONStruct T>
 std::string ConfigHelper::CreateJSONString(const T& toSerialize){
     rapidjson::Document document;
     document.SetObject();
-    toSerialize.Serialize(document.GetAllocator()).Swap(document);
+    toSerialize.Serialize(&toSerialize, document.GetAllocator()).Swap(document);
 
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
@@ -134,9 +134,9 @@ void ConfigHelper::CreateNewConfigFile(std::string fileName, std::string configT
     }
 }
 
-DECLARE_JSON_CLASS(LegacyConfig,
+DECLARE_JSON_STRUCT(LegacyConfig) {
     NAMED_VALUE_OPTIONAL(bool, overrideSettingsMethod, "overrideSettingsMethod");
-)
+};
 
 void ConfigHelper::CheckAndUpdateOldConfigVersion(std::string file, SaberTailor::SaberTailorProfileConfig& config) {
     if (config.configVersion == 6) return;

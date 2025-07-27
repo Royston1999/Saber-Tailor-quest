@@ -52,7 +52,7 @@ if ($useDebug -eq $true) {
     $fileName = Get-ChildItem lib*.so -Path "build/" -Name
 }
 
-& adb push build/$fileName /sdcard/Android/data/com.beatgames.beatsaber/files/mods/$fileName
+& adb push build/$fileName /sdcard/ModData/com.beatgames.beatsaber/ModLoader/mods/$fileName
 
 & $PSScriptRoot/restart-game.ps1
 
